@@ -1,0 +1,9 @@
+Changes in Version 0.1-1
+
+  o First CRAN release of new "psychomix" package for fitting
+    psychometric mixture models based on flexmix infrastructure. At the
+    moment only Rasch mixture models are implemented in various flavors:
+    with/without concomitant variables, different parametrizations
+    of the score distribution (saturated vs. mean/variance specification).
+    See vignette("raschmix", package = "psychomix") for details.
+

@@ -1,0 +1,1175 @@
+\documentclass[nojss]{jss}
+\usepackage{amsmath,amssymb,amsfonts,thumbpdf}
+
+%% additional commands
+\newcommand{\squote}[1]{`{#1}'}
+\newcommand{\dquote}[1]{``{#1}''}
+\newcommand{\fct}[1]{{\texttt{#1()}}}
+\newcommand{\class}[1]{\dquote{\texttt{#1}}}
+\newcommand{\argmax}{\operatorname{argmax}\displaylimits}
+%% for internal use
+\newcommand{\fixme}[1]{\emph{\marginpar{FIXME} (#1)}}
+\newcommand{\readme}[1]{\emph{\marginpar{README} (#1)}}
+
+\author{Hannah Frick\\Universit\"at Innsbruck \And
+	Carolin Strobl\\Universit\"at Z\"urich \And
+        Friedrich Leisch\\Universit\"at f\"ur\\Bodenkultur Wien \And
+	Achim Zeileis\\Universit\"at Innsbruck}
+\Plainauthor{Hannah Frick, Carolin Strobl, Friedrich Leisch, Achim Zeileis}
+
+\title{Flexible Rasch Mixture Models with Package \pkg{psychomix}}
+\Plaintitle{Flexible Rasch Mixture Models with Package psychomix}
+
+\Keywords{mixed Rasch model, Rost model, mixture model, \pkg{flexmix}, \proglang{R}}
+\Plainkeywords{mixed Rasch model, Rost model, mixture model, flexmix, R}
+
+\Abstract{
+  Measurement invariance is an important assumption in the Rasch model and
+  mixture models constitute a flexible way of checking for a violation of this
+  assumption by detecting unobserved heterogeneity in item response data.
+  Here, a general class of Rasch mixture models is established and implemented
+  in \proglang{R}, using conditional maximum likelihood estimation of the item
+  parameters (given the raw scores) along with flexible specification of two
+  model building blocks: (1)~Mixture weights for the unobserved classes can be
+  treated as model parameters or based on covariates in a concomitant variable
+  model. (2)~The distribution of raw score probabilities can be parametrized
+  in two possible ways, either using a saturated model or a
+  specification through mean and variance. The function \fct{raschmix} in
+  the \proglang{R} package \pkg{psychomix} provides these models, leveraging
+  the general infrastructure for fitting mixture models in the \pkg{flexmix} package.  
+  Usage of the function and its associated methods is illustrated on artificial data as well
+  as empirical data from a study of verbally aggressive behavior.
+}
+
+\Address{
+  Hannah Frick, Achim Zeileis\\
+  Department of Statistics\\
+  Universit\"at Innsbruck\\
+  Universit\"atsstr.~15\\
+  6020 Innsbruck, Austria\\
+  E-mail: \email{Hannah.Frick@uibk.ac.at}, \email{Achim.Zeileis@R-project.org}\\
+  URL: \url{http://eeecon.uibk.ac.at/~frick/}, \url{http://eeecon.uibk.ac.at/~zeileis/}\\
+
+  Carolin Strobl\\
+  Department of Psychology\\
+  Universit\"at Z\"urich\\
+  Binzm\"uhlestr.~14\\
+  8050 Z\"urich, Switzerland\\
+  E-mail: \email{Carolin.Strobl@psychologie.uzh.ch}\\
+  URL: \url{http://www.psychologie.uzh.ch/fachrichtungen/methoden.html}\\
+
+  Friedrich Leisch\\
+  Institute of Applied Statistics and Computing\\
+  Universit\"at f\"ur Bodenkultur Wien\\
+  Peter Jordan-Str.~82\\
+  1180 Wien, Austria\\
+  E-mail: \email{Friedrich.Leisch@R-project.org}\\
+  URL: \url{http://www.rali.boku.ac.at/friedrichleisch.html}
+}
+
+%% Sweave/vignette information and metadata
+%% need no \usepackage{Sweave}
+\SweaveOpts{engine = R, eps = FALSE, keep.source = TRUE}
+%\VignetteIndexEntry{Flexible Rasch Mixture Models with Package psychomix}
+%\VignetteDepends{graphics, stats, methods, Formula, flexmix, psychotools, psychomix}
+%\VignetteKeywords{mixed Rasch model, Rost model, mixture model, flexmix, R}
+%\VignettePackage{psychomix}
+
+<<preliminaries, echo=FALSE, results=hide>>=
+options(width = 70, prompt = "R> ", continue = "+  ")
+library("psychomix")
+data("VerbalAggression", package = "psychotools")
+set.seed(1090)
+cache <- FALSE
+@
+
+
+\begin{document}
+
+
+
+\section{Introduction} \label{sec:intro}
+
+%% Motivation
+
+%%% Rasch model and its assumptions
+In item response theory (IRT), latent traits are usually measured by 
+employing probabilistic models for responses to sets of items.
+One of the most prominent examples for such an approach is the
+Rasch model \citep{psychomix:Rasch:1960} which captures the
+difficulty (or equivalently easiness) of binary items and the
+respondent's trait level on a single common scale.
+Generally, a central assumption of most IRT models (including the Rasch model)
+is measurement invariance, i.e., that all items measure the latent
+trait in the same way for all subjects. If violated, measurements
+obtained from such a model provide no fair comparisons of the
+subjects. A typical violation of measurement invariance in the Rasch
+model is differential item functioning (DIF), see \citet{psychomix:Ackerman:1992}.
+
+%%% approaches to assess measurement invariance
+Therefore, assessing the assumption of measurement invariance and checking
+for DIF is crucial when establishing a Rasch model for measurements of
+latent traits. Hence, various approaches have been suggested in the literature
+that try to assess heterogeneity in (groups of) subjects either based on
+observed covariates or unobserved latent classes. If covariates are available,
+classical tests like the Wald or likelihood ratio test can be employed
+to compare model fits between some reference group and one or more focal
+groups \citep{psychomix:Fischer+Molenaar:1995}. Typically, these groups are
+defined by the researcher based on categorical covariates or arbitrary
+splits in either numerical covariates or the raw scores
+\citep{psychomix:Andersen:1972}. More recently, extensions of these
+classical tests have also been embedded into a mixed model
+representation \citep{psychomix:VanDenNoortgate+DeBoeck:2005}. Another
+recently suggested technique is to recursively define and assess
+groupings in a data-driven way based on all available covariates (both
+numerical and categorical) in so-called Rasch trees
+\citep{psychomix:Strobl+Kopf+Zeileis:2011}.
+
+%%% Rasch mixture models
+Heterogeneity occuring in latent classes only (i.e., not observed or captured
+by covariates), however, is typically addressed by mixtures of IRT models.
+Specifically, \citet{psychomix:Rost:1990} combined a mixture model approach
+with the Rasch model. If any covariates are present, they can be used
+to predict the latent classes (as opposed to
+the item parameters themselves) in a second step
+\citep{psychomix:Cohen+Bolt:2005}. More recently, extensions to this
+mixture model approach have been suggested that encompass this
+prediction, see \citet{psychomix:Tay+Newman+Vermunt:2011} for a
+unifying framework.
+
+%% Software
+
+%%% our contribution
+In this paper, we introduce the \pkg{psychomix} package for the
+\proglang{R} system for statistical computing \citep{psychomix:R:2011}
+that provides software for fitting a general and flexible class of
+Rasch mixture models along with comprehensive methods for model
+selection, assessment, and visualization. The package leverages the
+general and object-oriented infrastructre for fitting mixture models
+from the \pkg{flexmix} package
+\citep{psychomix:Leisch:2004,psychomix:Gruen+Leisch:2008}, combining
+it with the function \fct{RaschModel.fit} from the \pkg{psychotools} package
+\citep{psychomix:Zeileis+Strobl+Wickelmaier:2011} for the estimation of
+Rasch models. All packages are freely available from the Comprehensive
+\proglang{R} Archive Network at \url{http://CRAN.R-project.org/}.
+
+The reason for using \fct{RaschModel.fit} as opposed to other
+previously existing (and much more powerful and flexible)
+\proglang{R}~packages for Rasch modeling -- such as \pkg{ltm} \citep{psychomix:Rizopoulos:2006}
+or \pkg{eRm} \citep{psychomix:Mair+Hatzinger:2007} -- is reduced computational
+complexity: \fct{RaschModel.fit} is intended to provide a ``no frills''
+implementation of simple Rasch models, useful when refitting a model
+multiple times in mixtures or recursive partitions
+\citep[see also][]{psychomix:Strobl+Kopf+Zeileis:2011}. 
+
+While \pkg{psychomix} was under development, another \proglang{R} implementation
+of the \cite{psychomix:Rost:1990} model became available in package
+\pkg{mRm} \citep{psychomix:Preinerstorfer:2011}. As this builds on
+specialized \proglang{C++} code, it runs considerably faster than the generic
+\pkg{flexmix} approach -- however, it only covers this one particular type
+of model and offers fewer methods for specifying, inspecting, and assessing
+(fitted) models. In \pkg{psychomix}, both approaches are reconciled by
+optionally employing the \pkg{mRm} solution as an input to the \pkg{flexmix}
+routines.
+
+
+%% overview
+
+In the following, we first briefly review both Rasch and mixture models
+and combine them in a general Rasch mixture framework
+(Section~\ref{sec:theory}). Subsequently, the \proglang{R}
+implementation in \pkg{psychomix} is introduced
+(Section~\ref{sec:implementation}), illustrated by means of simulated
+data, and applied in practice to a study of verbally aggressive
+behavior (Section~\ref{sec:application}). Concluding remarks are
+provided in Section~\ref{sec:summary}.
+
+
+\vspace*{-0.2cm}
+
+\section{Rasch mixture models} \label{sec:theory}
+
+In the following, we first provide a short introduction to the Rasch model,
+subsequently outline the basics of mixture models in general, and finally
+introduce a general class of Rasch mixture models along with the
+corresponding estimation techniques.
+
+\subsection{The Rasch model} \label{sec:Rasch}
+
+Latent traits can be measured through a set of items to which binary
+responses are given. Sucess of solving an item or agreeing with it is
+coded as \dquote{1}, while \dquote{0} codes the opposite response. The
+model suggested by \citet{psychomix:Rasch:1960} uses the person's ability
+$\theta_i$ ($i = 1, \dots, n$) and the item's difficulty $\beta_j$ ($j
+= 1, \dots, m$) to model the response $y_{ij}$ of person $i$ to item $j$:
+%
+\begin{equation}
+  P(Y_{ij} = y_{ij} | \theta_i, \beta_j) ~=~
+  \frac{\exp \{y_{ij}(\theta_i - \beta_j)\}}{1 + \exp \{\theta_i -
+    \beta_j\}}. \label{eq:RM:model}
+\end{equation}
+%
+
+Under the assumption of independence -- both across persons and items
+within persons \citep[see][Chapter~1]{psychomix:Fischer+Molenaar:1995}
+-- the likelihood for the whole sample $y = (y_{ij})_{n \times m}$ can
+be written as the product of the likelihood contributions from
+Equation~\ref{eq:RM:model} for all combinations of subjects and
+items. It is parameterized by the vector of all person parameters
+$\theta = (\theta_1, \dots, \theta_n)^\top$ and the vector of all item
+parameters $\beta = (\beta_1, \dots, \beta_m)^\top$ (see
+Equation~\ref{eq:RM:L:fac:f}). On the basis of the number of correctly
+solved items, the so-called ``raw'' scores $r_i =
+\sum_{j=1}^{m}{y_{ij}}$, it can be factorized into a conditional
+likelihood of the item parameters $h(\cdot)$ and the score
+probabilties $g(\cdot)$ (Equation~\ref{eq:RM:L:fac:theta}). Because
+the scores $r$ are sufficient statistics for the person parameters $\theta$, the
+likelihood of the item parameters $\beta$ conditional on the scores~$r$
+does not depend on the person parameters~$\theta$ (Equation~\ref{eq:RM:L:fac}).
+\begin{eqnarray}
+  L(\theta, \beta) &=& f(y | \theta, \beta) \label{eq:RM:L:fac:f} \\
+  &=& h(y | r, \theta, \beta) g(r | \theta, \beta) \label{eq:RM:L:fac:theta} \\
+  &=& h(y | r, \beta) g(r | \theta, \beta) \label{eq:RM:L:fac}.
+\end{eqnarray}
+The conditional likelihood of the item parameters takes the form
+\begin{equation}
+  h(y| r, \beta) ~=~ \prod_{i = 1}^{n}{\frac
+    {\exp\{- \sum_{j = 1}^{m}{y_{ij} \beta_j}\}}
+    {\gamma_{r_i}(\beta)}} \label{eq:RM:condL}
+\end{equation}
+where $\gamma_{r_i}(\cdot)$ is the elementary symmetric function of order
+$r_i$, capturing all possible response patterns leading to a certain
+score \citep[see][Chapter~3, for details]{psychomix:Fischer+Molenaar:1995}.
+
+There are several approaches to estimating the Rasch model:
+\emph{Joint maximum likelihood (ML)} estimation of $\beta$ and
+$\theta$ is inconsistent, thus two other approaches have been
+established. Both are two-step approaches but differ in the way the
+person parameters $\theta$ are handled. For \emph{marginal ML}
+estimation a distribution for $\theta$ is assumed and integrated out
+in~$L(\theta, \beta)$, or equivalently in~$g(r | \theta, \beta)$. 
+In the \emph{conditional ML} approach only the conditional likelihood
+of the item parameters~$h(y | r, \beta)$ from
+Equation~\ref{eq:RM:condL} is maximized for estimating the item
+parameters. Technically, this is equivalent to maximizing $L(\theta, \beta)$
+with respect to $\beta$ if one assumes that $g(r | \delta) = g(r |
+\theta, \beta)$ does not depend on $\theta$ or $\beta$, but
+potentially other parameters $\delta$.
+
+In \proglang{R}, the \pkg{ltm} package
+\citep{psychomix:Rizopoulos:2006} uses the marginal ML approach while
+the \pkg{eRm} package \citep{psychomix:Mair+Hatzinger:2007} employs
+the conditional ML approach, i.e., uses and reports only the conditional part
+of the likelihood in the estimation of $\beta$.
+The latter approach is also taken by the \fct{RaschModel.fit} function in the
+\pkg{psychotools} package \citep{psychomix:Zeileis+Strobl+Wickelmaier:2011}.
+
+
+\subsection{Mixture models} \label{sec:mixtureModels}
+
+Mixture models are a generic approach for modeling data that is assumed to
+stem from different groups (or clusters) but group membership is unknown.
+
+The likelihood $f(\cdot)$ of such a mixture model is a weighted sum (with prior
+weights $\pi_k$) of the likelihood from several components $f_k(\cdot)$
+representing the different groups:
+%
+\begin{equation*}
+  f(y_i) ~=~ \sum_{k = 1}^{K}{\pi_k f_k(y_i)}.
+\end{equation*}
+%
+Generally, the components $f_k(\cdot)$ can be densities or
+(regression) models. Typically, all\linebreak $k$~components $f_k(\cdot)$ are
+assumed to be of the same type $f(y | \xi_k)$, distinguished through
+their component-specific parameter vector $\xi_k$.
+
+If variables are present which do not influence the components
+$f_k(\cdot)$ themselves but rather the prior class membership probabilities
+$\pi_k$, they can be incorporated in the model as so-called
+\emph{concomitant variables}
+\citep{psychomix:Dayton+Macready:1988}. In the psychometric 
+literature, such covariates predicting latent information are
+also employed, e.g., by \citet{psychomix:Tay+Newman+Vermunt:2011} who
+advocate a unifying IRT framework that also optionally encompasses
+concomitant information (labeled \emph{MM-IRT-C} for mixed-measurement IRT
+with covariates). To embed such concomitant variables $x_i$ into the
+general mixture model notation, a model for the component membership probability
+$\pi(k | x_i, \alpha)$ with parameters~$\alpha$ is employed:
+%
+\begin{equation}
+  f(y_i | x_i, \alpha, \xi_1, \ldots, \xi_K)
+    ~=~ \sum_{k = 1}^{K}{\pi(k | x_i, \alpha) f(y_i | \xi_k)} \label{eq:MM:conc}
+\end{equation}
+%
+where commonly a multinomial logit model is chosen to parametrize
+$\pi(k | x_i, \alpha)$ \citep[see e.g.,][]{psychomix:Gruen+Leisch:2008,psychomix:Tay+Newman+Vermunt:2011}.
+Note that the multinomial model collapses to separate $\pi_k$ ($k = 1, \dots, K$)
+if there is only an intercept and not real concomitants in $x_i$.
+
+\subsection{Flavors of Rasch mixture models}\label{sec:flavors}
+
+When combining the general mixture model framework from
+Equation~\ref{eq:MM:conc} with the Rasch model based on
+Equation~\ref{eq:RM:model}, several options are conceivable for two of
+the building blocks. First, the component weights can be estimated via
+a separate parameter $\pi_k$ for each component or via a
+concomitant variable model $\pi(k | x_i, \alpha)$ with parameters $\alpha$.
+Second, the full likelihood function $f(y_i | \xi_k)$ of the components needs
+to be defined. If a conditional ML approach is adopted, it is clear
+that the conditional likelihood $h(y_i | r_i, \beta)$ from
+Equation~\ref{eq:RM:condL} should be one part, but various
+choices for modeling the score probabilities are available.
+One option is to model each score probability with its own parameter
+$g(r_i) = \psi_{r_i}$, while another (more parsimonious) option would be 
+to adopt a parametric distribution with fewer parameters \citep{psychomix:Rost+VonDavier:1995}.
+Note that while for a single-component model, the
+estimates of the item parameters $\hat \beta$ are invariant to the choice
+of the score probabilities (as long as it is independent from $\beta$),
+this is no longer the case for a mixture model with $K \ge 2$.
+
+\subsubsection{Rost's original parametrization}
+
+One of these possible mixtures --~the so-called ``mixed Rasch model''
+introduced by \citet{psychomix:Rost:1990}~-- is already well-established
+in the psychometric literature. It models the score probabilities
+through separate parameters $g(r_i) = \psi_{r_i}$ (under the
+restriction that they sum to unity) and does not employ concomitant
+variables. The likelihood of Rost's mixture model can thus be written
+as
+%
+\begin{equation}
+  f(y | \pi, \psi, \beta) = 
+  \prod_{i=1}^{n}{\sum_{k = 1}^{K}{\pi_k h(y_i | r_i, \beta_k) \psi_{r_{i},k}}}.
+  \label{eq:Rost}
+\end{equation}
+%
+This particular parametrization is implemented in the
+\proglang{R} package \pkg{mRm} \citep{psychomix:Preinerstorfer:2011}.
+
+Since subjects who solve either none or all items (i.e., $r_i = 0$ or
+$m$, respectively) do not contribute to the conditional likelihood of
+the item parameters they cannot be allocated to any of the components
+in this parametrization. Hence, \citet{psychomix:Rost:1990} proposed
+to remove those \dquote{extreme scorers} from the analysis entirely
+and fix the corresponding score probabilities $\psi_0$ and $\psi_m$ at
+0. However, if one wishes to include these extreme scorers in the
+analysis, the corresponding score probabilities can be estimated through their
+relative frequency (across all components) and the remaining score
+probabilites within each component are rescaled to sum to unity
+together with those extreme score probabilties. Nevertheless, the
+extreme scorers still do not contribute to the estimation of the mixture itself.
+
+\subsubsection{Other score distributions}
+
+As noted by \cite{psychomix:Rost+VonDavier:1995}, the disadvantage of
+this saturated model for the raw score probabilities is that many
+parameters need to be estimated ($K \times (m-2)$, not counting
+potential extreme scorers) that are typically not of interest. To
+check for DIF, the item parameters are of prime importance while the
+raw score distribution can be regarded as a nuisance term. This 
+problem can be alleviated by embedding the model from Equation~\ref{eq:Rost}
+into a more general framework that also encompasses more parsimonious
+parametrizations. More specifically, a conditional logit model can be
+established
+% 
+\begin{equation}
+  \label{eq:scoreProbs:condLogit}
+  g(r | \delta) ~=~
+      \frac{\exp\{ z_{r}^\top \delta \}}
+           {\sum_{j=1}^{m-1}{\exp\{z_{j}^\top \delta \}}},
+\end{equation}
+%
+containing some auxiliary regressors $z_i$ with coefficients $\delta$.
+
+The saturated $g(r_i) = \psi_{r_i}$ model is a special case
+when constructing the auxiliary regressor from indicator/dummy variables
+for the raw scores $2, \dots, m-1$: $z_i = (I_2(r_i), \dots, I_{m-1}(r_i))^\top$.
+Then $\delta = (\log(\psi_{2}) - \log(\psi_1), \dots, \log(\psi_{m-1})
+- \log(\psi_1))^\top$ is a simple logit transformation of $\psi$.
+
+As an alternative \citet{psychomix:Rost+VonDavier:1995} suggests a specification
+with only two parameters that link to mean and variance of the score 
+distribution, respectively. More specifically, the auxiliary regessor
+is $z_i = (r_i/m, 4 r_i (m - r_i)/m^2)^\top$ so that $\delta$
+pertains to the vector of location and dispersion parameters
+of the score distribution.
+
+\subsubsection{General Rasch mixture model}
+
+Combining all elements of the likelihood this yields a more general
+specification of the Rasch mixture model
+%
+\begin{equation}
+  f(y | \pi, \alpha, \beta, \delta) = 
+  \prod_{i=1}^{n}{\sum_{k = 1}^{K}{\pi(k | x_i, \alpha)
+    ~ h(y_i | r_i, \beta_k) ~ g(r_i | \delta_k)}}. 
+  \label{eq:RMMgeneral}
+\end{equation}
+%
+with (a)~the concomitant model $\pi(k | x_i, \alpha)$ for modeling component
+membership, (b)~the component-specific conditional likelihood of the
+item parameters given the scores $h(y_i | r_i, \beta_k)$, and (c)~the
+component-specific score distribution $g(r_i | \delta_k)$.
+
+\pagebreak
+
+\subsection{Parameter estimation} \label{sec:estimation}
+
+Parameter estimation for mixture models is usually done via the
+expectation-maximization (EM) algorithm
+\citep{psychomix:Dempster+Laird+Rubin:1977}. It treats group 
+membership as unknown and optimizes the full likelihood including the
+group membership on basis of the observed values only. It iterates
+between two steps until convergence: estimation of group membership (E-step)
+and estimation of the components (M-step).
+
+In the E-step, the posterior probabilities of each observation for the
+$k$~components is estimated through:
+\begin{equation}
+  \label{eq:Estep:post}
+  \hat{p}_{ik} ~=~ \frac{\hat{\pi}_k f(y_i | \hat{\xi}_k)}{\sum_{g=1}^{K}{\hat{\pi}_gf(y_i | \hat{\xi}_g)}}
+\end{equation}
+using the parameter estimates for $\pi$ and $\xi$ from the previous
+iteration. In the case of concomitant variables, the component weights
+are $\hat \pi_{ik} = \pi(k | x_i, \hat \alpha)$. 
+
+In the M-step, the parameters of the mixture are re-estimated with
+the posterior probabilites as weights. Thus, observations deemed
+unlikely to belong to a certain component have little influence on
+estimation within this component.
+For each component, the weighted ML estimation can be written as
+%
+\begin{eqnarray}
+  \label{eq:MM:Mstep:comp}
+  \hat{\xi}_{k}
+    & = & \argmax_{\xi_k} \sum_{i=1}^{n}{\hat{p}_{ik}
+          \log f(y_i | \xi_k)} \quad (k = 1, \ldots, K) \\
+    & = & \left\{
+          \argmax_{\beta_k} \sum_{i=1}^{n}{\hat{p}_{ik} \log h(y_i | r_i, \beta_k)};~
+          \argmax_{\delta_k} \sum_{i=1}^{n}{\hat{p}_{ik} \log g(r_i | \delta_k)}
+	  \right\} \nonumber    
+\end{eqnarray}
+which for the Rasch model amounts to separately maximizing the
+weighted conditional log-likelihood for the item parameters and the
+weighted score log-likelihood.
+
+The concomitant model can be estimated seperately from the posterior
+probabilities, e.g., for a multinomial model:
+\begin{equation}
+  \label{eq:MM:Mstep:conc}
+  \hat{\alpha} = \argmax_{\alpha} \sum_{i = 1}^{n}{\sum_{k =
+      1}^{K}{\hat{p}_{ik} \log (\pi(k | x_i, \alpha))}}.
+\end{equation}
+
+Finally, note that the number of components $K$ is not a standard model
+parameter (because the likelihood regularity conditions do not apply)
+and thus it is not estimated through the EM algorithm. Either it needs
+to be chosen by the practitioner or by model selection techniques such
+as information criteria, as illustrated in the following examples.
+%% The standard approach of a likelihood ratio test is not applicable
+%% here because regularity conditions are not fulfilled for mixture
+%% models, thus the distribution under $H_0$ is unknown. It can only be
+%% approximated through bootstrap procedures. Another approach is to
+%% establish the number of components through information criteria. While
+%% no p-values are available, also no bootstrapping is required. This
+%% approach will be used here.
+
+
+
+\section[Implementation in R]{Implementation in \proglang{R}}
+\label{sec:implementation}
+
+\subsection{User interface} \label{sec:interface}
+
+The function \fct{raschmix} can be used to fit the different
+flavors of Rasch mixture models described in Section~\ref{sec:flavors}: 
+with or without concomitant variables in $\pi(k | x_i, \alpha)$,
+and with different score distributions $g(r_i | \delta_k)$
+(saturated vs.\ mean/variance parametrization). The function's synopsis is
+%
+\begin{Code}
+raschmix(formula, data, k, subset, weights, scores = "saturated",
+  nrep = 3, cluster = NULL, control = NULL,
+  verbose = TRUE, drop = TRUE, unique = FALSE, which = NULL,
+  gradtol = 1e-6, deriv = "sum", hessian = FALSE, ...)
+\end{Code}
+%
+where the lines of arguments pertain to (1)~data/model specification
+processed within\linebreak \fct{raschmix},
+(2)~control arguments for fitting a single mixture model,
+(3)~control arguments for iterating across mixtures over a range of
+numbers of components $K$, all passed to \fct{stepFlexmix}, and
+(4)~control arguments for fitting each model component within a mixture
+(i.e., the M-step) passed to \fct{RaschModel.fit}. Details are
+provided below, focusing on usage in practice first.
+
+A formula interface with the usual \code{formula}, \code{data}, \code{subset},
+and \code{weights} arguments is used: The left-hand side of the formula sets up
+the response matrix $y$ and the right-hand side the concomitant variables
+$x$ (if any). The response may be provided by a single matrix
+or a set of individual dummy vectors, both of which
+may be contained in an optional data frame. Example usages are
+\code{raschmix(resp ~ 1, ...)} if the matrix \code{resp} is an object
+in the working environment or \code{raschmix(item1 + item2 + item3 ~
+  1, data = d, ...)} if the \code{item*} vectors are in the data frame
+\code{d}. In both cases, \code{~ 1} signals that there are no
+concomitant variables -- if there were, they could be specified as
+\code{raschmix(resp ~ conc1 + conc2, ...)}. As an additional
+convenience, the formula may be omitted entirely if there are no
+concomitant variables, i.e., \code{raschmix(data = resp, ...)} 
+or alternatively \code{raschmix(resp, ...)}.
+
+The \code{scores} of the model can be set to either \code{"saturated"} 
+(see Equation~\ref{eq:Rost}) or \code{"meanvar"} for the mean/variance
+specification of \cite{psychomix:Rost+VonDavier:1995}. Finally, the number of
+components $K$ of the mixture is specified through \code{k}, which may
+be a vector resulting in a mixture model being fitted for each element.
+
+To control the EM algorithm for fitting the specified mixture models,
+\code{cluster} may optionally specificy starting probabilities $\hat p_{ik}$
+and \code{control} can set certain control arguments through a named list
+or an object of class \class{FLXcontrol}.
+One of these control arguments named \code{minprior} sets the
+minimum prior probability for every component. If in an iteration of
+the EM algorithm, any component has a prior probability smaller then
+\code{minprior}, it is removed from the mixture in the next
+iteration. The default is \code{0}, i.e., avoiding such shrinkage of the model.
+If \code{cluster} is not provided, \code{nrep} different random
+initializations are employed, keeping only the
+best solution (to avoid local optima). Finally, \code{cluster} can be
+set to \code{"mrm"} in which case the fast \proglang{C++} implementation
+from \pkg{mRm} \citep{psychomix:Preinerstorfer:2011} can be leveraged
+to generate optimized starting values. Again, the best solution of
+\code{nrep} runs of \fct{mrm} is used. Note that as of version~1.0
+of \pkg{mRm} only the model from Equation~\ref{eq:Rost} is supported
+in \fct{mrm}, resulting in suboptimal -- but potentially still useful --
+posterior probabilities $\hat p_{ik}$ for any other model flavor.
+
+Internally, \fct{stepFlexmix} is called to fit all individual mixture
+models and takes control arguments \code{verbose}, \code{drop}, and
+\code{unique}. If \code{k} is a vector, the whole set of models is
+returned by default but one may choose to select only the best model
+according to an information criterion. For example,
+\code{raschmix(resp, k = 1:3, which = "AIC", ...)} or
+\code{raschmix(resp ~ 1, data = d, k = 1:4, which = "BIC", ...)}. 
+
+The arguments \code{gradtol}, \code{deriv} and
+\code{hessian} are used to control the estimation of the item
+parameters in each M-step (Equation~\ref{eq:MM:Mstep:comp}) carried out
+via \fct{RaschModel.fit}.
+
+\pagebreak
+Function \fct{raschmix} returns objects of class \class{raschmix}
+or \class{stepRaschmix}, respectively, depending on whether a single
+or multiple mixture models are fitted. These classes extend
+\class{flexmix} and \class{stepFlexmix}, respectively, for more technical
+details see the next section. For standard methods for extracting or displaying
+information, either for \class{raschmix} directly or by inheritance, see
+Table~\ref{tab:methods} for an overview.
+
+\begin{table}[t!]
+  \centering
+  \begin{tabular}[b]{|l|l|p{9cm}|}
+    \hline
+    Function & Class & Description\\
+    \hline
+    \fct{summary} & \class{raschmix} & display information about the posterior
+    probabilities and item parameters; returns an object of class
+    \class{summary.raschmix} containing the relevant summary
+    statistics (which has a \fct{print} method)\\
+    \fct{parameters} & \class{raschmix} & extract estimated parameters
+    of the model for all or specified components, extact either
+    parameters $\alpha$ of concomitant model or item parameters
+    $\beta$ and/or score parameters $\delta$\\
+    \fct{worth} & \class{raschmix} & extract the item parameters $\beta$ under
+    the restriction $\sum_{j = 1}^{m}{\beta_j} = 0$\\
+    \fct{scoreProbs} & \class{raschmix} & extract the score
+    probabilities $g(r | \delta)$\\
+    \fct{plot} & \class{raschmix} & base graph of item parameter
+    profiles in all or specified components\\
+    \fct{xyplot} & \class{raschmix} & lattice graph of item parameter
+    profiles of all or specified components in a single or multiple panels\\
+    \fct{histogram} & \class{raschmix} & lattice rootogram or
+    histogram of posterior probabilities\\
+    \hline
+    \fct{print} & \class{stepFlexmix} & simple printed display of
+    number of components, log-likelihoods, and information criteria\\
+    \fct{plot} & \class{stepFlexmix} & plot information criteria
+    against number of components\\
+    \fct{getModel} & \class{stepFlexmix} & select model according to
+    either an information criterion or the number of components\\
+    \fct{print} & \class{flexmix} & simple printed display with
+    cluster sizes and convergence\\
+    \fct{clusters} & \class{flexmix} & extract predicted class memberships\\
+    \fct{posterior} & \class{flexmix} & extract posterior class probabilities\\
+    \fct{logLik} & \class{flexmix} & extract fitted log-likelihood\\
+    \fct{AIC}; \fct{BIC} & \class{flexmix} & compute
+    information criteria AIC, BIC\\
+    \hline
+  \end{tabular}
+  \caption{\label{tab:methods}Methods for objects of class \class{raschmix}.}
+\end{table}
+
+
+\subsection{Internal structure} \label{sec:flexmix}
+
+As briefly mentioned above, \fct{raschmix} leverages the \pkg{flexmix}
+package \citep{psychomix:Leisch:2004,psychomix:Gruen+Leisch:2008} and
+particularly its \fct{stepFlexmix} function for the estimation of (sets
+of) mixture models.
+
+The \pkg{flexmix} package is designed specifically to
+provide the infrastructure for flexible mixture modelling via the EM algorithm,
+where the type of a mixture model is determined through the model employed
+in the components. In the estimation process, this component model
+definition corresponds to the definition of the M-step
+(Equation~\ref{eq:MM:Mstep:comp}). 
+Consequently, the \pkg{flexmix} package provides the framework
+for fitting mixture models by leveraging the modular structure of the
+EM algorithm.  Provided with the right M-step, \pkg{flexmix} takes care of the
+data handling and iterating estimation through both E-step and M-step.
+
+% The M-step needs to be provided in the form of a \code{flexmix}
+% driver inheriting from class \class{FLXM} \citep[see][for details]{psychomix:Gruen+Leisch:2008}.
+% The \pkg{psychomix} package includes two such driver functions:
+% \fct{FLXMCraschrost} for fitting Rost's version (Equation~\ref{eq:Rost})
+% and \fct{FLXMCraschcond} for fitting the conditional version (Equation~\ref{eq:Cond})
+% of the Rasch mixture model, respectively. Both drivers rely on
+% the function \fct{RaschModel.fit} from the \pkg{psychotools} package
+% for estimation of the item parameters (i.e., maximization of the 
+% conditional likelihood from Equation~\ref{eq:RM:condL}) but add
+% different estimates of raw score probabilities. 
+The M-step needs to be provided in the form of a \code{flexmix}
+driver inheriting from class \class{FLXM} \citep[see][for
+details]{psychomix:Gruen+Leisch:2008}. The \pkg{psychomix} package
+includes such a driver function: \fct{FLXMCrasch} relies on
+the function \fct{RaschModel.fit} from the \pkg{psychotools} package
+for estimation of the item parameters (i.e., maximization of the 
+conditional likelihood from Equation~\ref{eq:RM:condL}) and adds
+different estimates of raw score probabilities depending on their
+parameterization.
+
+The reason for employing \fct{RaschModel.fit} rather than one of the
+more established Rasch model packages such as \pkg{eRm} or \pkg{ltm}
+is speed: \fct{RaschModel.fit} has been designed with reduced
+flexibility in order to save time when refitted multiple times as in
+Rasch mixture models or also Rasch trees in the \pkg{psychotree}
+package \citep{psychomix:Strobl+Kopf+Zeileis:2011}. 
+
+In the \pkg{flexmix} package, two fitting functions are
+provided. \fct{flexmix} is designed for fitting one model
+once and returns an object of class \class{flexmix}. \fct{stepFlexmix}
+extends this so that either a single model or several models can be
+fitted. It also provides the functionality to fit each model
+repeatedly to avoid local optima. 
+
+When fitting models repeatedly, only the solution with the highest likelihood is
+returned. Thus, if \fct{stepFlexmix} is used to repeatedly fit a
+single model, it returns an object of class \class{flexmix}. If
+\fct{stepFlexmix} is used to fit several models (repeatedly or just
+once), it returns an object of class \class{stepFlexmix}.
+
+This principle extends to \fct{raschmix}: If it is used to fit a
+single model, the returned object is of class \class{raschmix}. If
+used for fitting multiple models, \fct{raschmix} returns an object of
+class \class{stepRaschmix}. Both classes extend their \pkg{flemix}
+counterparts.
+
+
+\subsection{Illustrations} \label{sec:illustration}
+
+For illustrating the flexible usage of \fct{raschmix}, we employ an artificial
+data set drawn from one of the three data generating processes (DGPs) suggested
+by \citet{psychomix:Rost:1990} for the introduction of Rasch mixture models.
+All three DPGs are provided in the function \fct{simRaschmix} setting
+the \code{design} to \code{"rost1"}, \code{"rost2"}, or
+\code{"rost3"}, respectively. The DPGs contain mixtures of $K= 1$, and
+2, and 3 components, respectively, all with $m = 10$ items.
+
+The DPG \code{"rost1"} is intended to illustrate the model's capacity
+to correctly determine when no DIF is present. Thus, it includes only
+one latent class with item parameters $\beta^{(1)} = (2.7, 2.1, 1.5,
+0.9, 0.3, -0.3, -0.9, -1.5, -2.1, -2.7)^\top$. (Rost originally used
+opposite signs to reflect item easiness parameters but since 
+difficulty parameters are estimated by \fct{raschmix} the signs have
+been reversed.) The DGP \code{"rost2"} draws observations from
+two latent classes of equal sizes with item parameters of opposite signs:
+$\beta^{(1)}$ and $\beta^{(2)} = -\beta^{(1)}$, respectively
+(see Figure~\ref{fig:itemCompPlot} for an example). Finally, the DGP
+\code{"rost3"} adds a third component of smaller size with item parameters
+$\beta^{(3)} = (-0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5)^\top$.
+In all three DGPs, the person parameters $\theta$ are drawn from a discrete
+uniform distribution on $\{ 2.7,\;  0.9, -0.9, -2.7 \}$, except for
+the third class of DGP \code{"rost3"} which uses only one level of
+ability, $\{ 0 \}$. In all DGPs, response vectors for 1800~subjects are initially
+drawn but the extreme scorers who solved either none or all items are excluded.
+
+Here, a dataset from the second DGP is generated
+along with two artificial covariates \code{x1} and
+\code{x2}. Covariate \code{x1} is an informative binary variable
+(i.e., correlated with the true group membership) while \code{x2} is
+an uninformative continuous variable.
+%
+<<data-rost2>>=
+set.seed(1)
+r2 <- simRaschmix(design = "rost2")
+d <- data.frame(
+  x1 = rbinom(nrow(r2), prob = c(0.4, 0.6)[attr(r2, "group")], size = 1),
+  x2 = rnorm(nrow(r2))
+)
+d$resp <- r2
+@ 
+% 
+The \cite{psychomix:Rost:1990} version of the Rasch mixture model --
+i.e., with a saturated score model and without concomitant variables
+-- is fitted for one to three components. As no concomitants are
+employed in this model flavor, the matrix \code{r2} can be passed to
+\fct{raschmix} without formula:
+%
+<<fitRost0, echo = TRUE, eval = FALSE>>=
+m1 <- raschmix(r2, k = 1:3)
+m1
+@ 
+<<fitRost, echo = FALSE, eval = TRUE, results=hide>>=
+if(cache & file.exists("m1.rda")) {
+  load("m1.rda")
+} else {
+<<fitRost0>>
+if(cache) {
+  save(m1, file = "m1.rda")
+} else {
+  if(file.exists("m1.rda")) file.remove("m1.rda")
+}
+}
+@
+<<printRost, echo = FALSE, eval = TRUE>>=
+m1
+@
+% 
+\begin{figure}[t!]
+\centering
+\setkeys{Gin}{width=0.7\textwidth}
+<<plotRost, echo = FALSE, fig = TRUE, height = 4, width = 5.5>>=
+plot(m1)
+@ 
+\caption{\label{fig:r2RostNComp} Information criteria for Rost's model
+  with $K = 1, 2, 3$ components for the artifical scenario~2 data.}
+\end{figure}
+%
+To inspect the results, the returned object can either be printed, as
+illustrated above, or plotted yielding a visualization of information
+criteria (see Figure~\ref{fig:r2RostNComp}). Both printed display
+and visualization show a big difference in information criteria across
+numer of components $K$, with the minimum always being assumed for $K = 2$,
+thus correctly recovering the two latent classes constructed in the
+underlying DGP.
+
+The values of the information criteria can also be accessed directly
+via the functions of the corresponding names. 
+To select a certain model from a \class{stepRaschmix} object, the
+\fct{getModel} function from the \pkg{flexmix} package can be
+employed. The specification of \code{which} model is to be selected
+can either be an information criterion, or the number of components as
+a string, or the index of the model in the original vector \code{k}.
+In this particular case, \code{which = "BIC"}, \code{which = "2"},
+and \code{which = 2} would all return the model with $K = 2$ components.
+%
+<<selectRost, echo = TRUE>>=
+BIC(m1)
+m1b <- getModel(m1, which = "BIC")
+summary(m1b)
+@
+%
+To inspect the main properties of the model, \fct{summary} can be
+called. The information about the components of the mixture
+includes a priori component weights $\pi_k$ and sizes as well as the estimated
+item parameters $\hat \beta$ per component. Additionally, the fitted
+log-likelihood and the information criteria AIC and BIC are reported.
+As one of the item parameters in the Rasch model is not identified, a
+restriction needs to be applied to the item parameters.
+In the output of the \fct{summary} function, the item parameters of each
+component are scaled to sum to zero.
+
+Two other functions, \fct{worth} and \fct{parameters}, can be used to
+access the item parameters. The sum restriction employed in the
+\fct{summary} output is also applied by \fct{worth}. Additionally,
+\fct{worth} provides the possibilities to select several or just one
+specific \code{component} and to transform item \code{difficulty} parameters
+to item easiness parameters. The function \fct{parameters} also offers
+these two options but restricts the first item parameter to be zero (rather
+than the sum of item parameters), as this restriction is used in the internal
+computations. 
+Thus, for the illustrative dataset with 10~items, \fct{parameters}
+returns 9 item parameters, leaving out the first item parameter
+restricted to zero while \fct{worth} returns 10 item parameters summing to zero.
+The latter corresponds to the parametrization employed by
+\citet{psychomix:Rost:1990} and \fct{simRaschmix}. For convenience reasons, the
+true parameters are attached to the simulated dataset as an attribute
+named \code{"item"}. These are printed below and visualized in
+Figure~\ref{fig:itemCompPlot} (left), showing that all item parameters
+are recovered rather well. Note that the ordering of the components in mixture
+models is generally arbitrary.
+%
+<<itemParaRost, echo = TRUE>>=
+parameters(m1b, "item")
+worth(m1b)
+attr(r2, "item")
+@ 
+%
+In addition to the item parameters, the \fct{parameters} function 
+can also return the parameters of the \code{"score"} model and the
+\code{"concomitant"} model (if any). The type of parameters can be set
+via the \code{which} argument. Per default \fct{parameters} returns
+both item and score parameters. 
+
+A comparison between estimated and true class membership can be
+conducted using the \fct{clusters} function and the
+corresponding attribute of the data, respectively. As already
+noticeable from the item parameters, the first component of the
+mixture matches the second true group of the data and vice versa. This
+label-switching property of mixture models in general can also be seen
+in the cross-table of class memberships. We thus have
+\Sexpr{sum(diag(table(model = clusters(m1b), true = attr(r2, "group"))))}~misclassifications among the \Sexpr{nrow(r2)}
+observations.
+%
+<<clustersRost, echo = TRUE>>=
+table(model = clusters(m1b), true = attr(r2, "group"))
+@ 
+%
+For comparison, a Rasch mixture model with mean/variance parametrization
+for the score probabilites, as introduced in
+Section~\ref{sec:flavors}, is fitted with one to three components and
+the best BIC model is selected.
+%
+<<fitMeanVar0, echo = TRUE, eval = FALSE>>=
+m2 <- raschmix(data = r2, k = 1:3, scores = "meanvar")
+@ 
+<<fitMeanVar, echo = FALSE, eval = TRUE, results=hide>>=
+if(cache & file.exists("m2.rda")) {
+  load("m2.rda")
+} else {
+<<fitMeanVar0>>
+if(cache) {
+  save(m2, file = "m2.rda")
+} else {
+  if(file.exists("m2.rda")) file.remove("m2.rda")
+}
+}
+@ 
+%
+<<selectMeanVar, echo = TRUE>>=
+m2
+m2b <- getModel(m2, which = "BIC")
+@
+% 
+\begin{figure}[t!]
+\centering
+\setkeys{Gin}{width=\textwidth}
+<<itemCompPlot, echo = FALSE, fig = TRUE, width = 8.5, height = 4.5>>=
+par(mfrow = c(1,2))
+plot(m1b, pos = "top")
+for(i in 1:2) lines(attr(r2, "item")[,i], lty = 2, type = "b")
+plot(m2b, pos = "top")
+for(i in 1:2) lines(attr(r2, "item")[,i], lty = 2, type = "b")
+@ 
+\caption{\label{fig:itemCompPlot}
+  True (black) and estimated (blue/red) item parameters for the two
+  model specifications, \code{"saturated"} (left) and \code{"meanvar"} (right),
+  for the artifical scenario~2 data.}  
+\end{figure}
+%
+As in the saturated version of the Rasch mixture model, all three
+information criteria prefer the two-component model. Thus, this
+version of a Rasch mixture model is also capable of recognizing the
+two latent classes in the data while using a more 
+parsimonious parametrization with \Sexpr{attr(logLik(m2b), "df")}
+instead of \Sexpr{attr(logLik(m1b), "df")} parameters.
+%
+<<compNPara, echo = TRUE>>=
+logLik(m2b)
+logLik(m1b)
+@ 
+%
+The estimated parameters of the distribution of the score
+probabililities can be accessed through \fct{parameters} while the
+full set of score probabilities is returned by
+\fct{scoreProbs}. The estimated score probabilites of the illustrative
+model are approximately equal across components and roughly uniform.
+%
+<<scoreProbs:Rost2, echo = TRUE>>=
+parameters(m2b, which = "score")
+scoreProbs(m2b)
+@ 
+%
+The resulting item parameters for this particular data set are
+virtually identical to those from the saturated version, as can be
+seen in Figure~\ref{fig:itemCompPlot}.
+
+
+To demonstrate the use of a concomitant variable model for the weights
+of the mixture, the two artificial variables \code{x1} and \code{x2}
+are employed. They are added on the right-hand side of the formula, yielding
+a multinomial logit model for the weights (only if \code{k = 2} or
+more components are specified).
+%
+<<fitMeanVarConc0, echo = TRUE, eval = FALSE>>=
+cm2 <- raschmix(resp ~ x1 + x2, data = d, k = 2:3, scores = "meanvar")
+@ 
+<<fitMeanVarConc, echo = FALSE, eval = TRUE, results=hide>>=
+if(cache & file.exists("cm2.rda")) {
+  load("cm2.rda")
+} else {
+<<fitMeanVarConc0>>
+if(cache) {
+  save(cm2, file = "cm2.rda")
+} else {
+  if(file.exists("cm2.rda")) file.remove("cm2.rda")
+}
+}
+@ 
+%
+The BIC is used to compare the models with and without concomitant
+variables. In both cases, the two true groups are recognized
+correctly, while the model with concomitants manages to employ the additional
+information and reaches a somewhat improved model fit.
+%
+<<selectMeanVarConc, echo = TRUE>>=
+rbind(m2 = BIC(m2), cm2 = c(NA, BIC(cm2)))
+@ 
+%
+As mentioned above, the parameters of the concomitant model can be
+accessed via the\linebreak \fct{parameters} function, setting
+\code{which = "concomitant"}. The influence of the informative
+covariate \code{x1} is reflected in the large absolute coefficient
+while the estimated coefficient for the noninformative covariate
+\code{x2} is close to zero. 
+%
+<<concPara, echo = TRUE>>=
+cm2b <- getModel(cm2, which = "BIC")
+parameters(cm2b, which = "concomitant")
+@ 
+%
+%However, despite the improvement in BIC, 
+The corresponding estimated item parameters \code{parameters(cm2b, "item")} are not
+very different from the previous models (and are hence not shown
+here). This illustrative application shows that the inclusion of
+concomitant variables can provide additional information, e.g., that
+\code{x1} but not \code{x2} is associated with the class membership.
+% Thus, in this illustrative application, the main merit of the
+% concomitant part of the model is to bring out that the clustering
+% into mixture components is associated with \code{x1} but not \code{x2}. 
+Note also that this is picked up although a rather weak association
+was simulated here.
+<<concTable>>=
+table(x1 = d$x1, clusters = clusters(cm2b))
+@
+
+
+\section{Empirical application: Verbal aggression}
+\label{sec:application}
+
+The verbal aggression dataset \citep{psychomix:Boeck+Wilson:2004}
+contains item response data from 316 first-year psychology students
+along with gender and trait anger (assessed by the Dutch adaptation of
+the state-trait anger scale) as covariates
+\citep{psychomix:Smits+Boeck+Vansteelandt:2004}.
+The \Sexpr{table(VerbalAggression$gender)[1]}~women and
+\Sexpr{table(VerbalAggression$gender)[2]}~men responded to 24~items constructed
+the following way: Following the description of a frustrating
+situation, subjects are asked to agree or disagree with a
+possible reaction. The situations are described by the following four sentences:
+\begin{itemize}
+ \item S1: A bus fails to stop for me.
+ \item S2: I miss a train because a clerk gave me faulty information.
+ \item S3: The grocery store closes just as I am about to enter.
+ \item S4: The operator disconnects me when I had used up my last 10 cents
+  for a call.
+\end{itemize}
+Each reaction begins with either \dquote{I want to} or \dquote{I do}
+and is followed by one of the three verbally
+aggressive reactions \dquote{curse}, \dquote{scold}, or \dquote{shout},
+e.g., \dquote{I want to curse}, \dquote{I do curse}, \dquote{I want to
+  scold}, or \dquote{I do scold}.
+
+For our illustration, we use only the first two sentences which describe
+situations in which the others are to blame. Extreme-scoring subjects agreeing
+with either none or all responses are removed.
+%
+<<dataVerbal>>=
+data("VerbalAggression", package = "psychotools")
+VerbalAggression$resp2 <- VerbalAggression$resp2[, 1:12]
+va12 <- subset(VerbalAggression,
+  rowSums(resp2) > 0 & rowSums(resp2) < 12)
+colnames(va12$resp2)
+@ 
+%
+We fit Rasch mixture models with the mean/variance score model,
+one to four components, and with and without the two concomitant variables,
+respectively (the single component model being only fitted without covariates).
+%
+<<vMeanVarFit0, echo = TRUE, eval = FALSE>>=
+set.seed(1)
+va12_mix1 <- raschmix(resp2 ~ 1, data = va12, k = 1:4, scores = "meanvar")
+va12_mix2 <- raschmix(resp2 ~ gender + anger, data = va12, k = 2:4,
+  scores = "meanvar")
+@ 
+<<vMeanVarFit, echo = FALSE, eval = TRUE, results=hide>>=
+if(cache & file.exists("va12_mix.rda")) {
+  load("va12_mix.rda")
+} else {
+<<vMeanVarFit0>>
+if(cache) {
+  save(va12_mix1, va12_mix2, file = "va12_mix.rda")
+} else {
+  if(file.exists("va12_mix.rda")) file.remove("va12_mix.rda")
+}
+}
+@
+%
+The correspondig BIC for all considered models can be computed by
+% 
+<<selectVMeanVar, echo = TRUE>>=
+rbind(BIC(va12_mix1), c(NA, BIC(va12_mix2)))
+va12_mix3 <- getModel(va12_mix1, which = "3")
+@ 
+showing that three components are preferred regardless of whether
+or not concomitant variables are used. In this case, they do not lead
+to a better model fit, thus the 3-class model without concomitant
+variables is chosen.
+
+% 
+\begin{figure}[t!]
+\centering
+\setkeys{Gin}{width=\textwidth}
+<<plotVroot, echo = FALSE, fig = TRUE, width = 10, height = 4.3>>=
+trellis.par.set(theme = standard.theme(color = FALSE))
+print(histogram(va12_mix3))
+@   
+\caption{\label{fig:verbalRoot} Rootogram of posterior probabilties in the
+  3-component Rasch mixture model on verbal aggression data.}
+\end{figure}
+%
+
+The posterior probabilities for the three components can be visualized
+via\linebreak \code{histogram(va12_mix3)} -- by default using a square-root scale,
+yielding a so-called rootogram -- as shown in
+Figure~\ref{fig:verbalRoot}. In the ideal case, posterior probilities
+of the observations for each component are either high or low,
+yielding a U-shape in all panels. In this case here, the components
+are separated acceptably well.
+
+\begin{figure}[t!]
+\centering
+\setkeys{Gin}{width=\textwidth}
+<<plotVMeanVar, echo = FALSE, fig = TRUE, width = 10, height = 4.3>>=
+trellis.par.set(theme = standard.theme(color = FALSE))
+print(xyplot(va12_mix3))
+@ 
+\caption{\label{fig:verbalProfile} Item profiles for the 3-component
+  Rasch mixture model on verbal agression data. Items~1--6
+  pertain to situation S1 (bus), items~7--12 to situation S2 (train),
+  each in the following order: 
+  want to curse, do curse, want to scold, do scold, want to shout, do shout.}
+\end{figure}
+
+The item profiles in three components can be visualized via
+\code{plot(va12_mix3)} or\linebreak \code{xyplot(va12_mix3)} with the
+output of the latter being shown in Figure~\ref{fig:verbalProfile}. 
+The first six items are responses to the first sentence (bus), the remaining
+six refer to the second sentence (train). The six reactions are grouped in
+\dquote{want}/\dquote{do} pairs: first for \dquote{curse}, then \dquote{scold},
+and finally \dquote{shout}.
+
+The third component displays a zigzag pattern which indicates that
+subjects in this component always find it easier or less extreme to
+\dquote{want to} react a certain way rather than to actually
+\dquote{do} react that way. In the other two components this want/do
+relationship is reversed, except for the shouting response (to either
+situation).
+
+In the first component, there are no big differences in the estimated
+item parameters. Neither the situation (S1 or S2) nor the type of
+verbal response (curse, scold, or shout) is particularly hard to agree
+to for subjects in this component. In components~2 and~3, the
+situation is also not very relevant but subjects differentiate between
+the three verbal responses. This is best visible in component~2 where item
+difficulty is clearly increasing from response \dquote{curse} to
+response \dquote{shout}. Thus, shouting is preceived as the most
+extreme verbal response while cursing is considered a comparably
+moderate response. In component~3 this pattern is also visible albeit
+not as prominently as in component~2.
+
+One could also consider the 3-component model \emph{with} concomitant
+variables as its BIC was almost equivalent to that of the model
+\emph{without} concomitant variables. The estimated item parameters are
+virtually identical between both models and are hence not shown here.
+Nevertheless, the link between the concomitant variables and the
+latent classes may still be of interest:
+%
+<<concomitantsV>>=
+parameters(getModel(va12_mix2, which = "3"), which = "concomitant")
+@ 
+%
+The absolute sizes of the cofficients reflect that there may be
+some association with gender but less with the anger score. However,
+as there is a slight increase in BIC compared to the model without
+concomitants, the association with the covariates appears to be
+relatively weak. In comparison to other approaches exploring the
+association of class membership with covariates \emph{ex post}
+\cite[e.g., as in][]{psychomix:Cohen+Bolt:2005}, the main advantage of
+the concomitant variables model lies in the \emph{simulataneous}
+estimation of the mixture and the influence of covariates.
+
+
+% <<clustersV, echo = TRUE>>=
+% ## comparison with concomitant model, also consider parameters
+% table(
+%    without = clusters(getModel(va12_mix1, which = "3")),
+%    with = clusters(getModel(va12_mix2, which = "3")))
+% @ 
+% <<paraV, echo = TRUE>>=
+% parameters(va12_mix3)
+% parameters(getModel(va12_mix2, which = "3"))[,c(2,1,3)]
+% parameters(getModel(va12_mix2, which = "3"), which = "concomitant")
+% @ 
+% <<propTableV, echo = TRUE>>=
+% prop.table(xtabs(~ clusters(va12_mix3) + gender, data = va12), 1)
+% prop.table(xtabs(~ clusters(va12_mix3) + cut(anger, fivenum(anger)),
+%                  data = va12), 1)
+% @ 
+
+\section{Summary} \label{sec:summary}
+
+Mixtures of Rasch models are a flexible means of
+checking measurement invariance and testing for differential
+item functioning. Here, we establish a rather general unifying
+conceptual framework for Rasch mixture models along with the
+corresponding computational tools in the \proglang{R} package
+\pkg{psychomix}. In particular, this includes the original model
+specification of \citet{psychomix:Rost:1990} as well as more parsimoneous
+parameterizations \citep{psychomix:Rost+VonDavier:1995}, along with
+the possibility to incorporate concomitant variables predicting the
+latent classes \citep[as in][]{psychomix:Tay+Newman+Vermunt:2011}.
+
+The \proglang{R} implementation is based on the infrastructure provided by
+the \pkg{flexmix} package, allowing for convenient model specification
+and selection. The rich set of methods for \pkg{flexmix} objects is
+complemented by additional functions specifically designed for Rasch
+models, e.g., extracting different types of parameters in different
+transformations and visualizing the estimated component-specific
+item parameters in various ways. Optionally, speed gains can be obtained
+from utilizing the \proglang{C++} implementation in the \pkg{mRm}
+package for selecting optimal starting values.
+Thus, \pkg{psychomix} provides a comprehensive and convenient toolbox
+for the application of Rasch mixture models in psychometric research practice.
+
+
+\section*{Acknowledgments}
+
+We are thankful to the participants of the ``Psychoco~2011'' workshop
+at Universit\"at T\"ubingen for helpful feedback and discussions.
+
+
+\bibliography{psychomix}
+
+\end{document}

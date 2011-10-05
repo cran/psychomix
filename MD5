@@ -1,0 +1,16 @@
+dd02d25274c2024ee655fd321990db60 *DESCRIPTION
+d4252add5fbcdee833e5f077e74101fa *NAMESPACE
+7934e1a35109269efab660f9a423a987 *NEWS
+a54cf7d50b2a653518040502b91e6403 *R/raschmix.R
+72908ab73f06ec833786151badfdb2ab *R/raschmixMethods.R
+afeee5dfa77fed519cd308aa09e4093a *R/raschmixPlot.R
+b6430fec59751a9fab57a362057b75ee *R/simRaschmix.R
+4f0093b56dc9d6c931bf6f080eedc548 *inst/doc/psychomix.bib
+d9130c7113b66b91073b9fe254916f51 *inst/doc/raschmix.Rnw
+f61c5839a1727f5b05934eef9e554130 *inst/doc/raschmix.pdf
+fe29502dea972c056cbb104d09ba374a *man/raschmix.Rd
+76812223f2554e2e11627e78407fd68d *man/raschmixClass.Rd
+62c483ff22254b2f4515609751de9152 *man/raschmixMethods.Rd
+24ed70d65e8c6186fe8ec60cec811b2c *man/raschmixPlotMethod.Rd
+6036a5330a86cbde8c5d76006257c44f *tests/test.R
+c32bf95721028daba51dcfa1208d5d55 *tests/test.Rout.save

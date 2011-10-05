@@ -1,0 +1,25 @@
+import("graphics", "stats", "flexmix", "psychotools")
+importFrom("lattice", "histogram")
+importFrom("lattice", "xyplot")
+
+export(
+  ## Rasch mixture models: interface and driver
+  "raschmix",
+  "FLXMCrasch",
+
+  ## additional utitilies
+  "simRaschmix",
+  "scoreProbs"
+)
+
+exportClasses("raschmix")
+
+exportMethods("parameters")
+exportMethods("plot")
+exportMethods("show")
+exportMethods("summary")
+exportMethods("worth")
+
+## S3 methods for raschmix
+S3method("histogram", "raschmix")
+S3method("xyplot", "raschmix")
