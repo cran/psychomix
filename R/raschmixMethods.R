@@ -1,4 +1,3 @@
-setGeneric("worth")
 setMethod("worth", "raschmix", function(object, difficulty = TRUE,
                                         component = NULL){
   ## get parameters
@@ -19,27 +18,62 @@ setMethod("worth", "raschmix", function(object, difficulty = TRUE,
   return(rval)
 })
 
-## turn this into a generic method?
-scoreProbs <- function(object, component = NULL, simplify = TRUE,
-                        drop = TRUE){
 
-  ## call flexmix method
-  para <- parameters(as(object, "flexmix"), component = component, model = NULL,
-                         which = "model", simplify = FALSE, drop = drop)
+scoreProbs <- function(object, component = NULL, simplify = TRUE){
 
-  scores <- lapply(para, function(comp){
-    ret <- c(object@extremeScoreProbs[1], comp$scoreProbs,
-          object@extremeScoreProbs[2])
-    names(ret) <- (1:length(ret))-1
-    return(ret)
+  ## get score parameters
+  gamma <- parameters(object, which = "score", component = component,
+                      simplify = FALSE)
+  gamma <- lapply(gamma, function(x) x$score)
+
+  ## set up design matrix
+  m <- sum(object@identified.items == "0/1")
+  rs <- which(object@rawScoresData > 0)
+  nscores <- length(rs)
+  switch(object@scores,
+    "saturated" = {
+      xaux <- diag(nscores)
+      extra <- 0
+    },
+    "meanvar" = {
+      rr <- 1:(m-1L)
+      xaux <- cbind(rr / m, 4 * rr * (m - rr) / m^2)
+      extra <- NULL
+    },      
+    "constant" = {
+      xaux <- matrix(1, nrow = m - 1L, ncol = 1L)
+      extra <- 0
+    }
+    )
+
+  ## calculate score probabilities
+  scores <- sapply(gamma, simplify = simplify, FUN = function(gamma){
+
+    ## probabilities (colSums instead of %*% to get na.rm = TRUE)
+    eta <- colSums(c(extra, gamma) * t(xaux), na.rm = TRUE)
+    psi <- exp(eta) / sum(exp(eta))
+    
+    ## check for remaining problems
+    if(any(is.na(psi))) stop("some parameters in score model not identified")
+
+    ## for saturated model:
+    ## return probability 0 for scores not present in the data
+    if (object@scores == "saturated"){
+      psi.full <- numeric(m - 1L)
+      psi.full[rs] <- psi
+      psi <- psi.full
+    }
+
+    # conditional MLE -> r = 0 and r = "number of items" are excluded 
+    psi <- psi * (1 - sum(object@extremeScoreProbs))
+    psi <- c(object@extremeScoreProbs[1], psi, object@extremeScoreProbs[2])
+    
+    return(psi)
   })
-
-  if (simplify) {
-    scores <- do.call("cbind", scores)
-  }
 
   return(scores)
 }
+
 
 
 setMethod("parameters", "raschmix", function(object,
@@ -61,7 +95,6 @@ setMethod("parameters", "raschmix", function(object,
     if (length(component) == 1) para <- para[[1]]
 
     para <- lapply(para, function(comp){
-      comp$scoreProbs <- NULL
       if (!difficulty) comp$item <- -comp$item
       if (object@scores == "meanvar"){
         names(comp$score) <- c("location", "dispersion")

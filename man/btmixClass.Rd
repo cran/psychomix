@@ -1,15 +1,15 @@
-\name{raschmix-class}
+\name{btmix-class}
 \docType{class}
 
-\alias{raschmix-class}
+\alias{btmix-class}
 
-\title{Class "raschmix"}
+\title{Class "btmix"}
 
-\description{A fitted \code{\link{raschmix}} model.}
+\description{A fitted \code{\link{btmix}} model.}
 
 \section{Slots}{
   \describe{
-    \item{\code{model}:}{A \code{FLXMC} object for a Rasch mixture
+    \item{\code{model}:}{A \code{FLXMC} object for a Bradley-Terry mixture
       model}
     \item{\code{prior}:}{Numeric vector with prior probabilities of classes.}
     \item{\code{posterior}:}{Named list with elements \code{scaled}
@@ -21,8 +21,7 @@
     \item{\code{cluster}:}{Class assignments of observations.}
     \item{\code{size}:}{Class sizes.}
     \item{\code{logLik}:}{Log-likelihood at EM convergence.}
-    \item{\code{df}:}{Total number of
-      parameters of the model.}
+    \item{\code{df}:}{Total number of parameters of the model.}
     \item{\code{components}:}{List describing
       the fitted components using \code{FLXcomponent} objects.}
     \item{\code{formula}:}{Object of class \code{"formula"}.}
@@ -34,14 +33,10 @@
     \item{\code{concomitant}:}{Object of class \code{"FLXP"}..}
     \item{\code{weights}:}{Optional weights of the observations.}
 
-    \item{\code{scores}:}{Type of score model employed.}
-    \item{\code{extremeScoreProbs}:}{Estimated probability of solving
-      either all or no items.}
-    \item{\code{rawScoresData}:}{Table of raw scores from the data.}
     \item{\code{flx.call}:}{Internal call to \code{stepFlexmix}}
-    \item{\code{nobs}:}{Number of observations without missing values,
-    excluding observations with an extreme score.}
-    \item{\code{identified.items}:}{Factor indicating which items are identified.}
+    \item{\code{nobs}:}{Number of observations.}
+    \item{\code{labels}:}{Labels of objects compared.}
+    \item{\code{mscale}:}{Measurement scale of paired comparisons data.}
   }
 }
 \section{Extends}{

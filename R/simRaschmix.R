@@ -1,238 +1,148 @@
-## dgp for the 3 designs by Rost (1990)
-## and 4 designs with person parameters drawn from normal distributions
-simRaschmix <- function(nobs = 1800, itemp = NULL, mean = NULL, sd = NULL,
-                        design = c("rost1", "rost2", "rost3", "cont1",
-                          "cont1-2", "cont2", "cont2-2"),
-                        extremes = FALSE, attributes = TRUE)
-{
-  design <- match.arg(design)
-  if (!is.null(itemp) & is.vector(itemp)) itemp <- as.matrix(itemp, ncol = 1)
-  nitems <- 10
+## convenience function to set up sampling function
+## based on parameter specifications
+make_rnorm_fun <- function(par) {
+  m <- par[1L]
+  s <- par[2L]
+  function(n) rnorm(n, mean = m, sd = s)
+}
 
-  ## warnings / data preparation
-  if (design %in% c("rost1", "rost2", "rost3")){
-    if(nobs != 1800) {
-      warning("For a dataset from Rost (1990) the number of observations is 1800. Other values for nobs will be ignored.")
+make_sample_fun <- function(par) {
+  x <- if(is.null(dim(par))) par[1L] else par[, 1L]
+  p <- if(is.null(dim(par))) par[2L] else par[, 2L]
+  if(isTRUE(all.equal(sum(p), 1))) {
+    function(n) x[sample.int(length(x), size = n, prob = p, replace = TRUE)]
+  } else {
+    function(n) {
+      np <- n * p / sum(p)
+      stopifnot(isTRUE(all.equal(np, round(np))))
+      rep(x, round(np))[sample.int(round(sum(np)))]
+    }
+  }
+}
+
+
+
+simRaschmix <- function(design, extremes = FALSE, attributes = TRUE,...) {
+
+  if(!(is.list(design) && length(design) == 2L & all(names(design) %in% 
+                               c("ability", "difficulty")))){
+    ## character specification
+    if(is.character(design)) {
       nobs <- 1800
+      switch(match.arg(design, c("rost1", "rost2", "rost3")),
+             ## Rost gives item easiness parameter which are converted to
+             ## item difficulty parameters here.
+             "rost1" = {
+               weights <- 1
+               ability <- array(c(cbind(c(-2.7, -0.9, 0.9, 2.7), rep(1, 4))),
+                         dim = c(4, 2, 1))
+               difficulty <- matrix(c(2.7,2.1,1.5,0.9,0.3,-0.3,-0.9,-1.5,-2.1,-2.7), ncol = 1)
+             },
+             "rost2" = {
+               weights <- c(1,1)
+               ability <- array(c(cbind(c(-2.7, -0.9, 0.9, 2.7), rep(1, 4)),
+                                  cbind(c(-2.7, -0.9, 0.9, 2.7), rep(1, 4))),
+                                dim = c(4, 2, 2))
+               difficulty <- cbind(c(2.7,2.1,1.5,0.9,0.3,-0.3,-0.9,-1.5,-2.1,-2.7),
+                                   c(-2.7,-2.1,-1.5,-0.9,-0.3,0.3,0.9,1.5,2.1,2.7))
+             },
+             "rost3" = {
+               weights <- c(4,2,3)
+               ab.c3 <- numeric(4)
+               ab.c3[sample.int(4, size = 1, prob = rep(1,4)/4)] <- 1
+               ability <- array(c(cbind(c(-2.7, -0.9, 0.9, 2.7), rep(1, 4)),
+                                  cbind(c(-2.7, -0.9, 0.9, 2.7), rep(1, 4)),
+                                  cbind(c(-2.7, -0.9, 0.9, 2.7), ab.c3)),
+                                dim = c(4, 2, 3))
+               difficulty <- cbind(c(2.7,2.1,1.5,0.9,0.3,-0.3,-0.9,-1.5,-2.1,-2.7),
+                                   c(-2.7,-2.1,-1.5,-0.9,-0.3,0.3,0.9,1.5,2.1,2.7),
+                                   c(-0.5,0.5,-0.5,0.5,-0.5,0.5,-0.5,0.5,-0.5,0.5))
+             })
+    } else if(is.list(design) & length(design) == 4L & all(names(design) %in% c("ability", "difficulty", "nobs", "weights"))) {
+      nobs <- design$nobs
+      weights <- design$weights
+      ability <- design$ability
+      difficulty <- design$difficulty
     }
-    if (!is.null(itemp)){
-      warning("For a dataset from Rost(1990) the item parameters cannot be given. Any input will be ignored.")
-      itemp <- NULL
+    ## process weights, can be in three formats:
+    ## (1) function(n)
+    ## (2) vector of probabilities (summing to 1)
+    ## (3) vector of integer weights (summing to n, or an integer division thereof)
+
+    ## reduce (2)/(3) to case (1)
+    if(!is.function(weights)) weights <- make_sample_fun(cbind(seq_along(weights), weights))
+    ## set up weights
+    cluster <- weights(nobs)
+    weights <- table(cluster)
+    k <- length(weights)
+    
+    ## ability specification (in three clusters?), can be in three formats:
+    ## (1) list(k) of function(n)
+    ## (2) matrix(2, k) with means and standard deviations per cluster
+    ## (3) array(., 2, k) with abilities per weights/probabilities per cluster
+    
+    ## reduce (2)/(3) to case (1)
+    if(!(is.list(ability) && all(sapply(ability, is.function)))) {
+      if(length(dim(ability)) == 2L & dim(ability)[1L] == 2L & dim(ability)[2L] == k) {
+        ability <- lapply(1:k, function(i) make_rnorm_fun(ability[, i]))
+      } else if(length(dim(ability)) == 3L & dim(ability)[2L] == 2L & dim(ability)[3L] == k) {
+        ability <- lapply(1:k, function(i) make_sample_fun(ability[, , i]))  
+      } else {
+        stop("unknown ability specification")
+      }
     }
-    if (!is.null(mean)){
-      warning("Mean will be ignored.")
-      mean <- NULL
-    }
-    if (!is.null(sd)){
-      warning("SD will be ignored.")
-      sd <- NULL
+    ## set up ability within each cluster
+    ab <- numeric(nobs)
+    for(i in 1:k) ab[cluster == i] <- ability[[i]](weights[i])
+    ability <- ab
+    
+    ## difficulty specification, can be in 2 formats
+    ## (1) matrix(n, .) with difficulties per person
+    ## (2) matrix(., k) with difficulties per cluster
+    
+    if(!(length(dim(difficulty)) == 2L & dim(difficulty)[1L] == nobs)){
+      if(length(dim(difficulty)) == 2L && dim(difficulty)[2L] == k){
+        ## transform from per cluster to per person
+        difficulty.o <- difficulty
+        dif <- matrix(NA, nrow = nobs, ncol = dim(difficulty)[1L])
+        for (i in 1:k) dif[cluster == i,] <- rep(difficulty[,i], each = weights[i])
+        difficulty <- dif
+      }
+      else {
+        stop("unknown difficulty specification")
+      }
     }
   } else {
-    if (design %in% c("cont1", "cont1-2")) {
-      if (!is.null(itemp)){
-        if (ncol(itemp) > 1)
-          warning("Only the first column of itemp will be used.")
-        itemp <- itemp[ ,1, drop = FALSE]
-      }
-      if (!is.null(mean)){
-        if (length(mean) > 1) warning("Only the first element of mean will be used.")
-        mean <- mean[1]
-      }
-      if (!is.null(sd)){
-        if (length(sd) > 1) warning("Only the first element of sd will be used.")
-        sd <- sd[1]
-      }
-    } else {
-      if (!is.null(itemp)){
-        if (ncol(itemp) > 2){
-          warning("Only the first two columns of itemp will be used.")
-          itemp <- itemp[ ,1:2]
-        } else if (ncol(itemp) < 2) stop("Not enough item parameters provided for this design.")
-      }
-      if (!is.null(mean)){
-        if (length(mean) > 2){
-          warning("Only the first two element of mean will be used.")
-          mean <- mean[1:2]
-        } else if (length(mean) < 2) stop ("For this design 2 values for mean have to be provided.")
-      }
-      if (!is.null(sd)){
-        if (length(sd) > 2){
-          warning("Only the first element of sd will be used.")
-          sd <- sd[1:2]
-        } else if (length(sd) < 2) stop ("For this design 2 values for sd have to be provided.")
-      }
-    }
-    if (!is.null(itemp)) nitems <- nrow(itemp)
-    if (is.null(mean)){
-      if (design == "cont1") mean <- 0 else mean <- c(-2, 2)
-    }
-    if (is.null(sd)) sd <- c(1,1)
-  }  
-  
-  
-  ## item (difficulty) parameter
-  ## Rost gives item easiness parameter but since the estimation will be done
-  ## based on item difficulty parameters are converted to difficulty as well
-  beta1 <- -c(-2.7,-2.1,-1.5,-0.9,-0.3,0.3,0.9,1.5,2.1,2.7)
-  beta2 <- -c(2.7,2.1,1.5,0.9,0.3,-0.3,-0.9,-1.5,-2.1,-2.7)
-  beta3 <- -c(0.5,-0.5,0.5,-0.5,0.5,-0.5,0.5,-0.5,0.5,-0.5)
-
-  ## response function
-  resp <- function(ability, difficulty){
-    fsmat <- outer(ability, difficulty, FUN = "-")
-    psolve <- exp(fsmat) / (1 + exp(fsmat))
-    ret <- matrix(runif(length(ability)*length(difficulty)),
-                  nrow = length(ability), ncol = length(difficulty))
-    ret <- (ret <= psolve)*1
-    return(ret)
-  }
-
-  if (design == "rost1"){
-    ## 1 group
-    ## person parameters:
-    ## 4 values, 1/4 of the sample for each value -> 450 for each value
-
-    group <- rep(1, length.out = nobs)
-    theta <- sample(rep(c(-2.7, -0.9, 0.9, 2.7), length.out = nobs))
-    ret <- resp(theta, beta1)
-  }
-    
-  if (design == "rost2"){
-    ## 2 groups, equal size (900 per group)
-    ## person parameters:
-    ## 4 values, 1/4 of each group = 225 people for each value
-
-    group <- sample(rep(1:2, length.out = nobs))
-    theta1 <- sample(rep(c(-2.7, -0.9, 0.9, 2.7), length.out = (nobs/2)))
-    theta2 <- sample(rep(c(-2.7, -0.9, 0.9, 2.7), length.out = (nobs/2)))
-    theta <- rep(NA, length.out = nobs)
-    theta[group == 1] <- theta1
-    theta[group == 2] <- theta2    
-    ret <- matrix(NA, nrow = nobs, ncol = nitems)
-    ret[group == 1, ] <- resp(theta1, beta1)
-    ret[group == 2, ] <- resp(theta2, beta2)
-  }
-
-  if (design == "rost3"){
-    ## 3 groups with sizes: n1 = 800, n2 = 400, n3 = 800
-    ## person parameters:
-    ## groups 1+2: 4 values, 1/4 of each group for each value
-    ## this means: group 1: 200 for each value, group 2: 100
-    ## group 3: constant ability with value -0.9 chosen
-    
-    group <- sample(rep(1:3, times = nobs*c(4/9, 2/9, 3/9)))
-    theta1 <- sample(rep(c(-2.7, -0.9, 0.9, 2.7), length.out = (nobs*4/9)))
-    theta2 <- sample(rep(c(-2.7, -0.9, 0.9, 2.7), length.out = (nobs*2/9)))
-    theta3 <- rep.int(0, (nobs * 3/9))
-    theta <- rep(NA, length.out = nobs)
-    theta[group == 1] <- theta1
-    theta[group == 2] <- theta2
-    theta[group == 3] <- theta3
-    ret <- matrix(NA, nrow = nobs, ncol = nitems)
-    ret[group == 1, ] <- resp(theta1, beta1)
-    ret[group == 2, ] <- resp(theta2, beta2)
-    ret[group == 3, ] <- resp(theta3, beta3)
-  }
-
-  if (design == "cont1"){
-    ## 1 group wrt the IP
-    ## IP: beta1
-    ## PP: from 1 normal distributions with mean 0
-    
-    group <- rep(1, length.out = nobs)
-    theta <- rnorm(nobs, mean = mean[1], sd = sd[1])
-    if (!is.null(itemp)) beta1 <- itemp[ ,1]
-    ret <- resp(theta, beta1)
-  }
-
-  if (design == "cont1-2"){
-    ## 1 group wrt the IP, 2 groups wrt the PP
-    ## IP: beta1
-    ## PP: from 2 normal distributions with mean -2 and 2 (unless given otherwise)
-
-    group <- rep(1, length.out = nobs)
-    g <- sample.int(nobs, size = floor(nobs/2))
-    theta1 <- rnorm(floor(nobs/2), mean = mean[1], sd = sd[1])
-    theta2 <- rnorm(ceiling(nobs/2), mean = mean[2], sd = sd[2])
-    theta <- rep(NA, length.out = nobs)
-    theta[g] <- theta1
-    theta[-g] <- theta2
-    if (!is.null(itemp)) beta1 <- itemp[ ,1]
-    ret <- matrix(NA, nrow = nobs, ncol = nitems)
-    ret[g, ] <- resp(theta1, beta1)
-    ret[-g, ] <- resp(theta2, beta1)
+    ability <- design$ability
+    difficulty <- design$difficulty
+    cluster <- NULL
   }
   
-  if (design == "cont2"){
-    ## 2 groups, equal size
-    ## IP: beta1 and beta2
-    ## PP: from two normal distributions with mean -2 and 2 (unless given otherwise)
-    
-    group <- sample(rep(1:2, length.out = nobs))
-    tab <- table(factor(group, levels = 1:2))
-    theta1 <- rnorm(tab[1], mean = mean[1], sd = sd[1])
-    theta2 <- rnorm(tab[2], mean = mean[2], sd = sd[2])
-    theta <- rep(NA, length.out = nobs)
-    theta[group == 1] <- theta1
-    theta[group == 2] <- theta2
-    if (!is.null(itemp)){ beta1 <- itemp[ ,1]; beta2 <- itemp[ ,2] }
-    ret <- matrix(NA, nrow = nobs, ncol = nitems)
-    ret[group == 1, ] <- resp(theta1, beta1)
-    ret[group == 2, ] <- resp(theta2, beta2)
-  }
-
-  if (design == "cont2-2"){
-    ## 2 groups wrt the IP, 2 groups wrt the PP, but 4 groups wrt IP*PP
-    ## IP: beta1 and beta2
-    ## PP: from two normal distributions with mean -2 and 2 (unless given otherwise)
-    ## 4 groups: IP1-PP1, IP1-PP2, IP2-PP1, IP2-PP2
-    
-    g <- sample(rep(1:4, length.out = nobs))
-    group <- rep(1, length.out = nobs)
-    group[g == 3 | g == 4] <- 2
-    tab <- table(factor(g, levels = 1:4))
-    theta1 <- rnorm(tab[1], mean = mean[1], sd = sd[1])
-    theta2 <- rnorm(tab[2], mean = mean[2], sd = sd[2])
-    theta3 <- rnorm(tab[3], mean = mean[1], sd = sd[1])
-    theta4 <- rnorm(tab[4], mean = mean[2], sd = sd[2])
-    theta <- rep(NA, length.out = nobs)
-    theta[g == 1] <- theta1
-    theta[g == 2] <- theta2
-    theta[g == 3] <- theta3
-    theta[g == 4] <- theta4
-    if (!is.null(itemp)){ beta1 <- itemp[ ,1]; beta2 <- itemp[ ,2] }
-    ret <- matrix(NA, nrow = nobs, ncol = nitems)
-    ret[g == 1, ] <- resp(theta1, beta1)
-    ret[g == 2, ] <- resp(theta2, beta1)
-    ret[g == 3, ] <- resp(theta3, beta2)
-    ret[g == 4, ] <- resp(theta4, beta2)    
-  }
+  ## generate response
+  stopifnot(NROW(ability) == NROW(difficulty))
+  linpred <- ability - difficulty
+  prob <- plogis(linpred)
+  rval <- rbinom(n = length(prob), prob = prob, size = 1)
+  dim(rval) <- dim(prob)
   
-  ## removal of observations with extreme raw scores
+  ## remove observations with extreme raw scores
   if (!extremes){
-    w <- which(rowSums(ret) == 0 | rowSums(ret) == nitems)
+    w <- which(rowSums(rval) == 0 | rowSums(rval) == ncol(rval))
     if (length(w) > 0){
-      ret <- ret[-w,]
-      group <- group[-w]
-      theta <- theta[-w]
+      rval <- rval[-w,]
+      ability <- ability[-w]
+      cluster <- cluster[-w]
     }
   }
-
+  
   ## attach attributes
   if(attributes) {
-    attr(ret, "group") <- group
-    attr(ret, "person") <- theta
-    if (design %in% c("rost1", "cont1", "cont1-2")){
-        attr(ret, "item") <- data.frame(beta1 = beta1)
-      }
-    else {
-      if (design %in% c("rost2", "cont2", "cont2-2")){
-        attr(ret, "item") <- data.frame(beta1 = beta1, beta2 = beta2)
-      }
-      else attr(ret, "item") <- data.frame(beta1 = beta1, beta2 = beta2,
-                                        beta3 = beta3)
-    }
+    attr(rval, "ability") <- ability
+    #if(exists("difficulty.o")) attr(rval, "difficulty") <- difficulty.o
+    attr(rval, "difficulty") <- if(exists("difficulty.o")) difficulty.o else difficulty
+    attr(rval, "cluster") <- cluster
   }
-
-  return(ret)
+  
+  ## return
+  return(rval)
 }

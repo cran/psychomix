@@ -1,3 +1,29 @@
+Changes in Version 0.2-1
+
+  o For increased numerical stability the the default minprior control
+    parameter in raschmix() is now 0.05 (as in flexmix) and not 0
+    (as in the previous psychomix version).
+
+  o Revised vignette("raschmix", package = "psychomix"). Specifically,
+    there is a discussion of how the FLXMCrasch() can be used directly
+    with flexmix() or stepFlexmix() from the "flexmix" package.
+
+  o Improved function simRaschmix() to allow for a flexible specification
+    of the data generating process. 
+    
+  o Added an effectsplot() function that leverages the "effects" package
+    for visualizing the effects of the concomitant variables (if any) in
+    the mixture model. This has not yet been fully tested and may change
+    in future versions.
+    
+  o Added a new function btmix() for Bradley-Terry mixture models. The
+    design follows that of raschmix() rather closely. Based on btReg.fit()
+    from package "psychotools", there is a flexmix driver called FLXMCbtreg().
+    The btmix() function is a convenience interface calling stepFlexmix()
+    with the FLXMCbtreg() driver. This has not yet been fully tested and
+    may change in future versions.
+
+
 Changes in Version 0.1-1
 
   o First CRAN release of new "psychomix" package for fitting

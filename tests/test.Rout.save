@@ -1,5 +1,5 @@
 
-R version 2.13.1 (2011-07-08)
+R version 2.14.0 (2011-10-31)
 Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: i686-pc-linux-gnu (32-bit)
@@ -30,8 +30,8 @@ Loading required package: psychotools
 > set.seed(1)
 > 
 > ### Rost
-> r <- simRaschmix(design = "rost2", extreme = FALSE)
-> re <- simRaschmix(design = "rost2", extreme = TRUE)
+> r <- simRaschmix(design = "rost2", extremes = FALSE)
+> re <- simRaschmix(design = "rost2", extremes = TRUE)
 > 
 > mr <- raschmix(r, k = 2, nrep = 1, scores = "saturated")
 2 : *
@@ -52,7 +52,7 @@ raschmix(formula = r, k = 2, scores = "saturated", nrep = 1)
 
 Cluster sizes:
   1   2 
-820 808 
+830 819 
 
 convergence after 8 iterations
 > mrs
@@ -61,8 +61,8 @@ Call:
 raschmix(formula = r, k = 1:2, scores = "saturated", nrep = 1)
 
   iter converged k k0     logLik      AIC      BIC      ICL
-1    2      TRUE 1  1 -10409.177 20852.35 20944.07 20944.07
-2    9      TRUE 2  2  -8738.606 17547.21 17736.04 17809.92
+1    2      TRUE 1  1 -10484.227 21002.45 21094.39 21094.39
+2   10      TRUE 2  2  -8829.039 17728.08 17917.35 17987.33
 > mre
 
 Call:
@@ -70,38 +70,38 @@ raschmix(data = re, k = 2, scores = "saturated", nrep = 1)
 
 Cluster sizes:
   1   2 
-811 823 
+798 824 
 
-convergence after 8 iterations
+convergence after 9 iterations
 > mres
 
 Call:
 raschmix(data = re, k = 1:3, scores = "saturated", nrep = 1)
 
   iter converged k k0     logLik      AIC      BIC      ICL
-1    2      TRUE 1  1 -11058.702 22155.40 22257.98 21238.93
-2    8      TRUE 2  2  -9344.533 18763.07 18962.82 18006.88
-3   66      TRUE 3  3  -9328.625 18767.25 19064.18 18552.11
+1    2      TRUE 1  1 -11069.086 22176.17 22278.61 21208.96
+2    9      TRUE 2  2  -9413.509 18901.02 19100.50 18101.17
+3   67      TRUE 3  3  -9397.043 18904.09 19200.61 18314.57
 > 
 > parameters(mr)
-                 Comp.1      Comp.2
-item.Item02 -0.29645859  0.37325673
-item.Item03 -0.81547197  1.10548855
-item.Item04 -1.52833354  1.55395860
-item.Item05 -2.18609423  2.19435334
-item.Item06 -2.84028046  2.86595034
-item.Item07 -3.30964639  3.44127350
-item.Item08 -3.94307287  4.06326240
-item.Item09 -4.54499274  4.67727579
-item.Item10 -5.06950851  5.30746318
-score.2      0.05934189  0.19060581
-score.3      0.05992926  0.10051070
-score.4     -0.14056303 -0.10498271
-score.5     -0.13731611 -0.17466282
-score.6     -0.17039857  0.08536118
-score.7      0.09554081  0.18410844
-score.8     -0.02019733 -0.04855460
-score.9     -0.11509591  0.03650649
+                  Comp.1       Comp.2
+item.Item02 -0.502340709  0.440685829
+item.Item03 -1.245893928  0.874503443
+item.Item04 -1.773341948  1.516743267
+item.Item05 -2.313590657  2.322731354
+item.Item06 -2.920365158  2.820228480
+item.Item07 -3.496550253  3.502710513
+item.Item08 -4.072859285  4.098094096
+item.Item09 -4.680361120  4.614145799
+item.Item10 -5.262645393  5.275196545
+score.2      0.230503799  0.006782353
+score.3      0.049722200  0.081735451
+score.4     -0.106395805 -0.064024406
+score.5      0.086188356 -0.197728788
+score.6      0.202391017 -0.085467395
+score.7     -0.008855019  0.050350581
+score.8      0.172874822  0.036869530
+score.9      0.256702935  0.141051551
 > 
 > ## ### DIFSim
 > ## data("DIFSim", package = "psychotree")

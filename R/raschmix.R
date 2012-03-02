@@ -1,23 +1,10 @@
-## define own class for raschmix and stepRaschmix objects
-setClass("raschmix",
-         representation(scores = "character",
-                        extremeScoreProbs = "numeric",
-                        flx.call = "call",
-                        nobs = "numeric",
-                        identified.items = "factor"),
-         contains = "flexmix")
-
-setClass("stepRaschmix",
-         representation(flx.call = "call"),
-         contains = "stepFlexmix")
-
-
 ## interface 
 raschmix <- function(formula, data, k, subset, weights,
                      scores = c("saturated", "meanvar"),
-                     nrep = 3, cluster = NULL, control = list(minprior = 0),
+                     nrep = 3, cluster = NULL, control = NULL,
                      verbose = TRUE, drop = TRUE, unique = FALSE, which = NULL,
-		     gradtol = 1e-6, deriv = "sum", hessian = FALSE, ...){  
+		     gradtol = 1e-6, deriv = "sum", hessian = FALSE,
+		     model = NULL, ...){  
   ## process call
   cl <- match.call()
   has_subset <- !missing(subset)
@@ -110,13 +97,19 @@ raschmix <- function(formula, data, k, subset, weights,
   pi.m <- n.m / n.total
   pi.nonex <- nrow(d$.response) / n.total
 
+  ## reference category for saturated score model
+  rs <- factor(rowSums(d$.response, na.rm = TRUE), levels = 1:(ncol(d$.response)-1L))
+  rs <- table(rs)
+  ref <- min(which(rs > 0))
+
   ## Rasch driver including score model
   scores <- match.arg(head(tolower(scores), 1L), c("saturated", "meanvar", "constant"))
-  model <- FLXMCrasch(scores = scores, nonExtremeProb = pi.nonex, gradtol = gradtol, deriv = deriv, hessian = hessian)
+  if(is.null(model)) model <- FLXMCrasch(scores = scores, nonExtremeProb = pi.nonex, ref = ref,
+    gradtol = gradtol, deriv = deriv, hessian = hessian)
 
   ## <FIXME> additionally incorporate "conditional" version of the Rasch mixture model? </FIXME>
   raschcond <- FALSE
-  if (raschcond) model <- FLXMCraschcond(gradtol = gradtol, deriv = deriv, hessian = hessian)
+  ## if (raschcond) model <- FLXMCraschcond(gradtol = gradtol, deriv = deriv, hessian = hessian)
 
   ## control parameters
   ctrl <- as(control, "FLXcontrol")  
@@ -163,6 +156,7 @@ raschmix <- function(formula, data, k, subset, weights,
     z <- as(z, "raschmix")
     z@scores <- scores
     if (!raschcond) z@extremeScoreProbs <- c(pi.0, pi.m)
+    z@rawScoresData <- rs
     z@flx.call <- z@call
     z@call <- cl
     z@nobs <-  n.total - n.0 - n.m # includes only those observations passed on to stepFlexmix
@@ -182,6 +176,7 @@ raschmix <- function(formula, data, k, subset, weights,
       model <- as(model, "raschmix")
       model@scores <- scores
       if (!raschcond) model@extremeScoreProbs <- c(pi.0, pi.m)
+      model@rawScoresData <- rs
       model@flx.call <- model@call
       model@call <- cl
       model@call$k <- model@flx.call$k
@@ -200,8 +195,8 @@ raschmix <- function(formula, data, k, subset, weights,
 
 
 ## Flexmix driver for Rasch mixture model
-FLXMCrasch <- function(formula = . ~ ., scores = c("saturated", "meanvar"),
-  nonExtremeProb = 1, gradtol = 1e-6, deriv = "sum", hessian = FALSE, ...)
+FLXMCrasch <- function(formula = . ~ ., scores = "saturated",
+  nonExtremeProb = 1, ref = 1, gradtol = 1e-6, deriv = "sum", hessian = FALSE, ...)
 {
   scores <- match.arg(scores, c("saturated", "meanvar", "constant"))
 
@@ -212,18 +207,22 @@ FLXMCrasch <- function(formula = . ~ ., scores = c("saturated", "meanvar"),
 
     ## include score probabilities pi_rk
     logLik <- function(x,y,...) {
-      loglikfun(para$rm, y, pr = para$prk, weighted = FALSE,...)
+      loglikfun_rasch(para$rm, y, pr = para$prk, weighted = FALSE,...)
     }
 
     ## adjust df
     df <- para$rm$df + length(para$gamma)
 
     new("FLXcomponent", df = df , logLik = logLik,
-        parameters = list(item = para$rm$coef, scoreProbs = para$prk,
-          score = para$gamma))
+        parameters = list(item = para$rm$coef, score = para$gamma))
   })
 
   retval@fit <- function(x,y,w, ...){
+    ## set weights to zero if computationally zero
+    ## (FIXME: should this be checked by flexmix?)
+    w <- ifelse(w < .Machine$double.eps^(1/1.5), 0, w)
+    
+    ## estimate parameters
     rasch.model <- RaschModel.fit(y, weights = w, gradtol = gradtol,
       deriv = deriv, hessian = hessian, ...)
 
@@ -240,9 +239,9 @@ FLXMCrasch <- function(formula = . ~ ., scores = c("saturated", "meanvar"),
     ## raw score probabilities via logit model
     switch(scores,    
       "saturated" = {
+        #fix <- min(which(nrk > 0))
         xaux <- diag(m - 1L)
-        gamma <- log(nrk[-1L] / nk) - log(nrk[1L] / nk)
-	extra <- 0
+        gamma <- log(nrk) - log(nrk[ref])
       },
       "meanvar" = {
         rr <- as.numeric(names(nrk))
@@ -254,22 +253,25 @@ FLXMCrasch <- function(formula = . ~ ., scores = c("saturated", "meanvar"),
           -sum(nrk * log(psi))
         }
         gamma <- optim(start, clm)$par
-	extra <- NULL
+	ref <- NULL
       },      
       "constant" = {
         xaux <- matrix(1, nrow = m - 1L, ncol = 1L)
-	gamma <- NULL
-	extra <- 0
+	gamma <- 0
+	ref <- 1
       }
     )
-    
+
+    ## probabilities (colSums instead of %*% to get na.rm = TRUE)
+    eta <- colSums(as.vector(gamma) * t(xaux), na.rm = TRUE)
+    psi <- exp(eta) / sum(exp(eta))
+
+    ## drop fixed parameters
+    if(!is.null(ref)) gamma <- gamma[-ref]
+        
     ## any aliased parameters?
     alias <- if(length(gamma) > 0L) !is.finite(gamma) | is.na(gamma) else logical(0L)
     
-    ## probabilities (colSums instead of %*% to get na.rm = TRUE)
-    eta <- colSums(c(extra, gamma) * t(xaux), na.rm = TRUE)
-    psi <- exp(eta) / sum(exp(eta))
-        
     ## check for remaining problems
     if(any(is.na(psi))) stop("some parameters in score model not identified")
 
@@ -294,16 +296,21 @@ FLXMCraschcond <- function(formula = . ~ .,
 
   retval@defineComponent <- expression({
 
-    logLik <- function(x, y, ...) loglikfun(rasch.model, y, weighted = FALSE,...) 
+    logLik <- function(x, y, ...) loglikfun_rasch(rasch.model, y, weighted = FALSE,...) 
 
     new("FLXcomponent", df = rasch.model$df, logLik = logLik,
           parameters = list(coef = rasch.model$coef))
   })
 
   retval@fit <- function(x,y,w,...){
-      rasch.model <- RaschModel.fit(y, weights = w,
-        gradtol = gradtol, deriv = deriv, hessian = hessian, ...)
-      with(rasch.model, eval(retval@defineComponent))
+    ## set weights to zero if computationally zero
+    ## (FIXME: should this be checked by flexmix?)
+    w <- ifelse(w < .Machine$double.eps^(1/1.5), 0, w)
+    
+    ## estimate parameters
+    rasch.model <- RaschModel.fit(y, weights = w,
+      gradtol = gradtol, deriv = deriv, hessian = hessian, ...)
+    with(rasch.model, eval(retval@defineComponent))
   }
   retval@dist <- "Rasch"
   retval
@@ -311,7 +318,10 @@ FLXMCraschcond <- function(formula = . ~ .,
 
 
 ## compute individual contributions to log-likelihood function
-loglikfun <- function(object, data, pr = NULL, weighted = TRUE, ...) {
+loglikfun_rasch <- function(object, data, pr = NULL, weighted = TRUE, ...) {
+
+  ## in case of non-identified parameters return log(0)  
+  if(any(object$items != "0/1")) return(rep(-Inf, NROW(data)))
 
   ## in case of NAs
   if(object$na) {

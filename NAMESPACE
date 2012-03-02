@@ -1,25 +1,48 @@
 import("graphics", "stats", "flexmix", "psychotools")
+importFrom("modeltools", "parameters")
 importFrom("lattice", "histogram")
 importFrom("lattice", "xyplot")
 
 export(
+  ## Bradley-Terry mixture models: interface and driver
+  "btmix",
+  "FLXMCbtreg",
+
   ## Rasch mixture models: interface and driver
   "raschmix",
   "FLXMCrasch",
 
   ## additional utitilies
   "simRaschmix",
-  "scoreProbs"
+  "scoreProbs",
+
+  ## effects interface
+  "effectsplot",
+  "effectsplot.efflist",
+  "effectsplot.effpoly",
+  "allEffects.btmix",
+  "allEffects.raschmix",
+  "effect.btmix",
+  "effect.raschmix"
 )
 
+exportClasses("btmix")
 exportClasses("raschmix")
 
+exportMethods("effectsplot")
 exportMethods("parameters")
 exportMethods("plot")
 exportMethods("show")
 exportMethods("summary")
 exportMethods("worth")
 
+## S3 methods for btmix
+S3method("histogram", "btmix")
+S3method("labels", "btmix")
+S3method("mscale", "btmix")
+S3method("xyplot", "btmix")
+
 ## S3 methods for raschmix
 S3method("histogram", "raschmix")
 S3method("xyplot", "raschmix")
+

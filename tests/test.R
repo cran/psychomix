@@ -2,8 +2,8 @@ library("psychomix")
 set.seed(1)
 
 ### Rost
-r <- simRaschmix(design = "rost2", extreme = FALSE)
-re <- simRaschmix(design = "rost2", extreme = TRUE)
+r <- simRaschmix(design = "rost2", extremes = FALSE)
+re <- simRaschmix(design = "rost2", extremes = TRUE)
 
 mr <- raschmix(r, k = 2, nrep = 1, scores = "saturated")
 mrs <- raschmix(r, k = 1:2, nrep = 1, scores = "saturated")

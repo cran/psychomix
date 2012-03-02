@@ -1,0 +1,24 @@
+citHeader("To cite psychomix in publications use")
+
+citEntry(entry = "TechReport",
+  title        = "Flexible {R}asch Mixture Models with Package {psychomix}",
+  author       = personList(as.person("Hannah Frick"), 
+		   as.person("Carolin Strobl"),
+		   as.person("Friedrich Leisch"),
+		   as.person("Achim Zeileis")),
+  institution  = "Working Papers in Economics and Statistics, Research Platform Empirical
+  		  and Experimental Economics, Universit\\\"at Innsbruck",
+  year         = "2011",
+  type         = "Working Paper",
+  number       = "2011-21",
+  month        = "October",
+  url	       = "http://EconPapers.RePEc.org/RePEc:inn:wpaper:2011-21",
+  
+  textVersion  = 
+  paste("Hannah Frick, Carolin Strobl, Friedrich Leisch, Achim Zeileis (2011).", 
+	"Flexible Rasch Mixture Models with Package psychomix.",
+ 	"Working Paper 2011-21.",
+ 	"Working Papers in Economics and Statistics, Research Platform Empirical and Experimental Economics, Universitaet Innsbruck.",
+	"URL http://EconPapers.RePEc.org/RePEc:inn:wpaper:2011-21")
+)
+

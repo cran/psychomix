@@ -3,28 +3,22 @@
 
 \alias{raschmix}
 \alias{FLXMCrasch}
-\alias{simRaschmix}
 
 \title{Finite Mixtures of Rasch Models}
 
 \description{
-  Fit finte mixtures of Rasch models for item response data via
+  Fit finite mixtures of Rasch models for item response data via
   conditional maximum likelihood with the EM algorithm.
 }
 
 \usage{
 raschmix(formula, data, k, subset, weights, scores = c("saturated", "meanvar"),
-         nrep = 3, cluster = NULL, control = list(minprior = 0),
-         verbose = TRUE, drop = TRUE, unique = FALSE, which = NULL,
-	 gradtol = 1e-6, deriv = "sum", hessian = FALSE, ...)
+  nrep = 3, cluster = NULL, control = NULL, verbose = TRUE,
+  drop = TRUE, unique = FALSE, which = NULL, gradtol = 1e-6, deriv = "sum",
+  hessian = FALSE, model = NULL, \dots)
 
-FLXMCrasch(formula = . ~ ., scores = c("saturated", "meanvar"),
-  nonExtremeProb = 1, gradtol = 1e-6, deriv = "sum", hessian = FALSE, ...)
-
-simRaschmix(nobs = 1800, itemp = NULL, mean = NULL, sd = NULL,
-            design = c("rost1", "rost2", "rost3", "cont1",
-                       "cont1-2", "cont2", "cont2-2"),
-            extremes = FALSE, attributes = TRUE)
+FLXMCrasch(formula = . ~ ., scores = "saturated", nonExtremeProb = 1,
+  ref = 1, gradtol = 1e-6, deriv = "sum", hessian = FALSE, \dots)
 }
 
 \arguments{
@@ -67,49 +61,44 @@ simRaschmix(nobs = 1800, itemp = NULL, mean = NULL, sd = NULL,
     number of components or name of an information criterion.}
   \item{nonExtremeProb}{A numeric giving the probability of scoring
     either none or all items.}
+  \item{ref}{Reference category for the saturated score model.}
   \item{gradtol, deriv, hessian}{Control parameters passed to
     \code{\link[psychotools]{RaschModel.fit}} for the M-step.}
-  \item{nobs}{Number of observations.}
-  \item{itemp}{Optional item parameters for designs \code{"cont1"},
-    \code{"cont1-2"}, \code{"cont2"}, and \code{"cont2-2"}. Given as a
-    \code{matrix} with each column representing one latent class.}
-  \item{mean, sd}{Parameters of the normal distribution used to
-    generate person parameters.}
-  \item{design}{Type of data generating process.}
-  \item{extremes}{Logical. Should observations with none or all items
-    solved be included in the data?}
-  \item{attributes}{Logical. Should the true group membership as well as
-    true item and person parameters be attached to the data as attributes
-    \code{"group"}, \code{"item"}, and \code{"person"}?}
+  \item{model}{An object inheriting from class \code{"FLXM"} for the
+    \code{\link[flexmix]{flexmix}}-driver, as typically produced by
+    \code{FLXMCrasch}. By default \code{FLXMCrasch} is called automatically
+    with the parameters computed from \code{raschmix}.}
   \item{\dots}{Currently not used.}
 }
 
 \details{
-  Internally \code{\link[flexmix]{stepFlexmix}}
-  is called with suitable arguments to fit the finite mixture model with
-  the EM algorithm.
+  \code{raschmix} is intended as a convenience interface to the
+  \code{\link[flexmix]{stepFlexmix}} function. The formula argument of
+  raschmix is used to describe the model in terms of both items and
+  concomitant variables, if any. On the left-hand side of the formula
+  the item are specified, either as a matrix \code{y} or as single items
+  \code{y1 + y2 + y3 + \ldots}. On the right-hand side, the concomitant
+  variables are specified. If no concomitant variables are to be
+  included in the model, the right-hand side of the is just written as
+  \code{~ 1}.
 
-  \code{FLXMCrasch} is the \code{\link[flexmix]{flexmix}}-driver for
-  the Rasch mixture models with saturated score distribution as
-  proposed by Rost (1990), also known as \dQuote{Mixed Rasch Model}.
-
-  For the \code{design} argument of \code{simRaschmix}, \code{"rost1"},
-  \code{"rost2"}, and \code{"rost3"} refer to the 3 data generating
-  processes (dgps) introduced in Rost (1990). The other arguments refer to
-  similar dgps with the same sets of item parameters but the person
-  parameters drawn from normal distributions.
-  \code{"cont1"} is the counterpart to \code{"rost1"} with the person
-  parameters drawn from a standard normal distribution. \code{"cont1-2"}
-  is similar, but the person parameters stem from two different normal
-  distributions with means 2 and -2.
-  \code{"cont2"} and \code{"cont2-2"} are the counterparts to
-  \code{"rost2"}. For \code{"cont2"} for all observations with the same
-  item parameters, the same normal distribution is used to generate
-  person parameters. For \code{"cont2-2"}, in each group regarding the
-  item parameters extra heterogenity is introduced via sampling the
-  person parameters from two different normal distributions (with means
-  2 and -2), similar to dgp \code{"cont1-2"}.
+  \code{raschmix} processes this model description and calls
+  \code{\link[flexmix]{stepFlexmix}} with the suitable driver
+  \code{FLXMCrasch}. Usually, the driver does not need to be called by
+  itself, but it is of course also possible to call
+  \code{\link[flexmix]{stepFlexmix}} directly with this driver to fit
+  Rasch mixture models.
   
+  The Rasch mixture model with saturated score distribution as proposed
+  by Rost (1990) is also known as \dQuote{Mixed Rasch Model}.
+  
+  % Internally \code{\link[flexmix]{stepFlexmix}}
+  % is called with suitable arguments to fit the finite mixture model with
+  % the EM algorithm.
+
+  % \code{FLXMCrasch} is the \code{\link[flexmix]{flexmix}}-driver for
+  % the Rasch mixture models with saturated score distribution as
+  % proposed by Rost (1990), also known as \dQuote{Mixed Rasch Model}.
 }
 
 \value{
@@ -143,7 +132,8 @@ simRaschmix(nobs = 1800, itemp = NULL, mean = NULL, sd = NULL,
 }
 
 \seealso{
-  \code{\link[flexmix]{flexmix}}, \code{\link[flexmix]{stepFlexmix}}
+  \code{\link[flexmix]{flexmix}}, \code{\link[flexmix]{stepFlexmix}},
+  \code{\link{simRaschmix}}
 }
 
 \examples{
@@ -155,9 +145,9 @@ simRaschmix(nobs = 1800, itemp = NULL, mean = NULL, sd = NULL,
 set.seed(1)
 r2 <- simRaschmix(design = "rost2")
 
-## plus informative and noninformative concomitants
+## plus informative and non-informative concomitants
 d <- data.frame(
-  x1 = rbinom(nrow(r2), prob = c(0.4, 0.6)[attr(r2, "group")], size = 1),
+  x1 = rbinom(nrow(r2), prob = c(0.4, 0.6)[attr(r2, "cluster")], size = 1),
   x2 = rnorm(nrow(r2))
 )
 d$resp <- r2
@@ -184,11 +174,11 @@ summary(m1b)
 ## compare estimated with true item parameters
 parameters(m1b, "item") ##  9 items, item_1 = 0
 worth(m1b)              ## 10 items, sum = 0
-attr(r2, "item")
+attr(r2, "difficulty")
 
 ## graphical comparison
 plot(m1b, pos = "top")
-for(i in 1:2) lines(attr(r2, "item")[,i], lty = 2, type = "b")
+for(i in 1:2) lines(attr(r2, "difficulty")[,i], lty = 2, type = "b")
 
 ## extract estimated raw score probabilities
 ## (approximately equal across components and roughly uniform)
@@ -204,7 +194,7 @@ histogram(m1b)
 head(posterior(m1b)) ## for first observations only
 
 ## compare resulting clusters with true groups
-table(model = clusters(m1b), true = attr(r2, "group"))
+table(model = clusters(m1b), true = attr(r2, "cluster"))
 
 ## optionally: leverage mRm package for faster computation of
 ## starting values
@@ -222,8 +212,8 @@ worth(m1b) - worth(m1b_mrm)
 ## (Rost & von Davier, 1995)                                  ##
 ################################################################
 
-## more parsimonious parametrization,
-## fit multinomial logit model for score probabilites
+## more parsimonious parameterization,
+## fit multinomial logit model for score probabilities
 
 ## fit models and select best BIC
 m2 <- raschmix(r2, k = 1:3, score = "meanvar")
@@ -236,7 +226,7 @@ dim(parameters(m1b))
 
 ## graphical comparison with true parameters
 plot(m2b, pos = "top")
-for(i in 1:2) lines(attr(r2, "item")[,i], lty = 2, type = "b")
+for(i in 1:2) lines(attr(r2, "difficulty")[,i], lty = 2, type = "b")
 
 ## results from non-parametric and parametric specification
 ## essentially identical

@@ -12,7 +12,7 @@
   Methods for \code{\link{raschmix-class}} objects.
 }
 \usage{
-\S4method{summary}{raschmix}(object, eps=1e-4, ...)
+\S4method{summary}{raschmix}(object, eps = 1e-4, ...)
 
 \S4method{parameters}{raschmix}(object,
        which = c("model", "item", "score", "concomitant"),
@@ -20,7 +20,7 @@
 
 \S4method{worth}{raschmix}(object, difficulty = TRUE, component = NULL)
 
-scoreProbs(object, component = NULL, simplify = TRUE, drop = TRUE)
+scoreProbs(object, component = NULL, simplify = TRUE)
 }
 \arguments{
   \item{object}{An object of class \code{"raschmix"}.}
@@ -36,8 +36,6 @@ scoreProbs(object, component = NULL, simplify = TRUE, drop = TRUE)
   \item{component}{Indicates which components are returned. Default is
     all components.}
   \item{simplify}{Should the result be simplified if possible?}
-  \item{drop}{Argument passed on directly to the parameters method for
-    \code{flexmix} objects.}
   \item{...}{Currently not used.}
 }
 \details{

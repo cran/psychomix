@@ -1,0 +1,324 @@
+
+> options(width = 70, prompt = "R> ", continue = "+  ")
+
+> library("psychomix")
+Loading required package: Formula
+Loading required package: flexmix
+Loading required package: lattice
+Loading required package: modeltools
+Loading required package: stats4
+Loading required package: multcomp
+Loading required package: mvtnorm
+Loading required package: survival
+Loading required package: splines
+Loading required package: psychotools
+
+> data("VerbalAggression", package = "psychotools")
+
+> set.seed(1090)
+
+> cache <- FALSE
+
+> set.seed(1)
+
+> r2 <- simRaschmix(design = "rost2")
+
+> d <- data.frame(x1 = rbinom(nrow(r2), prob = c(0.4, 
++     0.6)[attr(r2, "cluster")], size = 1), x2 = rnorm(nrow(r2)))
+
+> d$resp <- r2
+
+> if (cache & file.exists("m1.rda")) {
++     load("m1.rda")
++ } else {
++     set.seed(2)
++     m1 <- raschmix(r2, k = 1:3)
++     m1
++     if (cache) { .... [TRUNCATED] 
+1 : * * *
+2 : * * *
+3 : * * *
+
+> m1
+
+Call:
+raschmix(formula = r2, k = 1:3)
+
+  iter converged k k0     logLik      AIC      BIC      ICL
+1    2      TRUE 1  1 -10484.227 21002.45 21094.39 21094.39
+2    9      TRUE 2  2  -8829.038 17728.08 17917.35 17987.30
+3   87      TRUE 3  3  -8813.566 17733.13 18019.75 18381.12
+
+> plot(m1)
+
+> BIC(m1)
+       1        2        3 
+21094.39 17917.35 18019.75 
+
+> m1b <- getModel(m1, which = "BIC")
+
+> summary(m1b)
+
+Call:
+raschmix(formula = r2, k = 2)
+
+       prior size post>0 ratio
+Comp.1   0.5  819   1285 0.637
+Comp.2   0.5  830   1301 0.638
+
+Item Parameters:
+           Comp.1     Comp.2
+Item01 -2.5461202  2.6278014
+Item02 -2.1053818  2.1250731
+Item03 -1.6716259  1.3812230
+Item04 -1.0293942  0.8535212
+Item05 -0.2233463  0.3129251
+Item06  0.2737738 -0.2937375
+Item07  0.9561390 -0.8701084
+Item08  1.5512491 -1.4464384
+Item09  2.0670784 -2.0540176
+Item10  2.7276280 -2.6362421
+
+'log Lik.' -8829.038 (df=35)
+AIC: 17728.08   BIC: 17917.35 
+
+
+> parameters(m1b, "item")
+               Comp.1     Comp.2
+item.Item02 0.4407384 -0.5027283
+item.Item03 0.8744943 -1.2465784
+item.Item04 1.5167259 -1.7742802
+item.Item05 2.3227738 -2.3148763
+item.Item06 2.8198940 -2.9215389
+item.Item07 3.5022592 -3.4979099
+item.Item08 4.0973693 -4.0742398
+item.Item09 4.6131985 -4.6818190
+item.Item10 5.2737482 -5.2640435
+
+> worth(m1b)
+           Comp.1     Comp.2
+Item01 -2.5461202  2.6278014
+Item02 -2.1053818  2.1250731
+Item03 -1.6716259  1.3812230
+Item04 -1.0293942  0.8535212
+Item05 -0.2233463  0.3129251
+Item06  0.2737738 -0.2937375
+Item07  0.9561390 -0.8701084
+Item08  1.5512491 -1.4464384
+Item09  2.0670784 -2.0540176
+Item10  2.7276280 -2.6362421
+
+> attr(r2, "difficulty")
+      [,1] [,2]
+ [1,]  2.7 -2.7
+ [2,]  2.1 -2.1
+ [3,]  1.5 -1.5
+ [4,]  0.9 -0.9
+ [5,]  0.3 -0.3
+ [6,] -0.3  0.3
+ [7,] -0.9  0.9
+ [8,] -1.5  1.5
+ [9,] -2.1  2.1
+[10,] -2.7  2.7
+
+> table(model = clusters(m1b), true = attr(r2, "cluster"))
+     true
+model   1   2
+    1  14 805
+    2 812  18
+
+> if (cache & file.exists("m2.rda")) {
++     load("m2.rda")
++ } else {
++     set.seed(3)
++     m2 <- raschmix(data = r2, k = 1:3, scores = "meanvar")
+ .... [TRUNCATED] 
+1 : * * *
+2 : * * *
+3 : * * *
+
+> m2
+
+Call:
+raschmix(data = r2, k = 1:3, scores = "meanvar")
+
+  iter converged k k0     logLik      AIC      BIC      ICL
+1    2      TRUE 1  1 -10486.816 20995.63 21055.12 21055.12
+2    8      TRUE 2  2  -8834.887 17715.77 17840.16 17910.22
+3   57      TRUE 3  3  -8827.580 17725.16 17914.44 18517.94
+
+> m2b <- getModel(m2, which = "BIC")
+
+> par(mfrow = c(1, 2))
+
+> plot(m1b, pos = "top")
+
+> for (i in 1:2) lines(attr(r2, "difficulty")[, i], 
++     lty = 2, type = "b")
+
+> plot(m2b, pos = "top")
+
+> for (i in 1:2) lines(attr(r2, "difficulty")[, i], 
++     lty = 2, type = "b")
+
+> logLik(m2b)
+'log Lik.' -8834.887 (df=23)
+
+> logLik(m1b)
+'log Lik.' -8829.038 (df=35)
+
+> parameters(m2b, which = "score")
+                     Comp.1      Comp.2
+score.location    0.1656278  0.09897452
+score.dispersion -0.1685913 -0.25082243
+
+> scoreProbs(m2b)
+         Comp.1    Comp.2
+ [1,] 0.0000000 0.0000000
+ [2,] 0.1105525 0.1170379
+ [3,] 0.1072163 0.1101855
+ [4,] 0.1053926 0.1058368
+ [5,] 0.1050067 0.1037202
+ [6,] 0.1060429 0.1037062
+ [7,] 0.1085434 0.1057938
+ [8,] 0.1126115 0.1101109
+ [9,] 0.1184185 0.1169270
+[10,] 0.1262158 0.1266817
+[11,] 0.0000000 0.0000000
+
+> if (cache & file.exists("cm2.rda")) {
++     load("cm2.rda")
++ } else {
++     set.seed(4)
++     cm2 <- raschmix(resp ~ x1 + x2, data = d, k = 1:3, sc .... [TRUNCATED] 
+1 : * * *
+2 : *Loading required package: nnet
+ * *
+3 : * * *
+
+> rbind(m2 = BIC(m2), cm2 = BIC(cm2))
+           1        2        3
+m2  21055.12 17840.16 17914.44
+cm2 21055.12 17776.30 17863.20
+
+> cm2b <- getModel(cm2, which = "BIC")
+
+> tStat <- 2 * (logLik(cm2b) - logLik(m2b))
+
+> pValue <- pchisq(tStat, attr(logLik(cm2b), "df") - 
++     attr(logLik(m2b), "df"), lower.tail = FALSE)
+
+> if (pValue < 0.001) pValue <- "< 0.001"
+
+> cm2b <- getModel(cm2, which = "BIC")
+
+> parameters(cm2b, which = "concomitant")
+            1           2
+(Intercept) 0  0.45759154
+x1          0 -0.91231699
+x2          0  0.02909329
+
+> table(x1 = d$x1, clusters = clusters(cm2b))
+   clusters
+x1    1   2
+  0 318 501
+  1 505 325
+
+> data("VerbalAggression", package = "psychotools")
+
+> VerbalAggression$resp2 <- VerbalAggression$resp2[, 
++     1:12]
+
+> va12 <- subset(VerbalAggression, rowSums(resp2) > 
++     0 & rowSums(resp2) < 12)
+
+> colnames(va12$resp2)
+ [1] "S1WantCurse" "S1DoCurse"   "S1WantScold" "S1DoScold"  
+ [5] "S1WantShout" "S1DoShout"   "S2WantCurse" "S2DoCurse"  
+ [9] "S2WantScold" "S2DoScold"   "S2WantShout" "S2DoShout"  
+
+> if (cache & file.exists("va12_mix.rda")) {
++     load("va12_mix.rda")
++ } else {
++     set.seed(1)
++     va12_mix1 <- raschmix(resp2 ~ 1, data = va1 .... [TRUNCATED] 
+1 : * * *
+2 : * * *
+3 : * * *
+4 : * * *
+1 : * * *
+2 : * * *
+3 : * * *
+4 : * * *
+
+> rbind(BIC(va12_mix1), BIC(va12_mix2))
+            1        2        3        4
+[1,] 3874.632 3857.567 3854.350 3887.361
+[2,] 3874.632 3859.119 3854.823 3881.709
+
+> va12_mix3 <- getModel(va12_mix2, which = "3")
+
+> va12_mix1b <- getModel(va12_mix1, which = "3")
+
+> va12_mix2b <- getModel(va12_mix2, which = "3")
+
+> tStatVA <- 2 * (logLik(va12_mix2b) - logLik(va12_mix1b))
+
+> pValueVA <- pchisq(tStatVA, attr(logLik(va12_mix2b), 
++     "df") - attr(logLik(va12_mix1b), "df"), lower.tail = FALSE)
+
+> if (pValueVA < 0.001) pValueVA <- "< 0.001"
+
+> trellis.par.set(theme = standard.theme(color = FALSE))
+
+> print(histogram(va12_mix3))
+Loading required package: grid
+
+> trellis.par.set(theme = standard.theme(color = FALSE))
+
+> print(xyplot(va12_mix3))
+
+> parameters(getModel(va12_mix2, which = "3"), which = "concomitant")
+            1         2          3
+(Intercept) 0  3.674400  2.9133488
+gendermale  0 -1.417051  0.2469647
+anger       0 -0.126804 -0.1153490
+
+> if (cache & file.exists("fcm2.rda")) {
++     load("fcm2.rda")
++ } else {
++     set.seed(4)
++     fcm2 <- stepFlexmix(resp ~ 1, data = d, k = 1:3, mo .... [TRUNCATED] 
+1 : * * *
+2 : * * *
+3 : * * *
+
+> rbind(cm2 = BIC(cm2), fcm2 = BIC(fcm2))
+            1       2       3
+cm2  21055.12 17776.3 17863.2
+fcm2 21055.12 17776.3 17863.2
+
+> fcm2b <- getModel(fcm2, which = "BIC")
+
+> cbind(parameters(cm2b, which = "concomitant"), parameters(fcm2b, 
++     which = "concomitant"))
+            1           2 1           2
+(Intercept) 0  0.45759154 0  0.45759154
+x1          0 -0.91231699 0 -0.91231699
+x2          0  0.02909329 0  0.02909329
+
+> parameters(fcm2b, which = "model")
+                Comp.1     Comp.2
+item.Item02  0.4458346 -0.5087521
+item.Item03  0.8794662 -1.2541760
+item.Item04  1.5175866 -1.7793831
+item.Item05  2.3308901 -2.3289335
+item.Item06  2.8255458 -2.9351243
+item.Item07  3.5001245 -3.5059820
+item.Item08  4.0926646 -4.0813257
+item.Item09  4.6158647 -4.6979720
+item.Item10  5.2655129 -5.2701341
+score1       0.1008315  0.1638214
+score2      -0.2485943 -0.1711337
+
+ *** Run successfully completed ***
