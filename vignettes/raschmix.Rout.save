@@ -254,7 +254,7 @@ x1    1   2
 > rbind(BIC(va12_mix1), BIC(va12_mix2))
             1        2        3        4
 [1,] 3874.632 3857.567 3854.350 3887.361
-[2,] 3874.632 3859.119 3854.823 3881.709
+[2,] 3874.632 3859.116 3854.823 3880.486
 
 > va12_mix3 <- getModel(va12_mix2, which = "3")
 
@@ -279,10 +279,10 @@ Loading required package: grid
 > print(xyplot(va12_mix3))
 
 > parameters(getModel(va12_mix2, which = "3"), which = "concomitant")
-            1         2          3
-(Intercept) 0  3.674400  2.9133488
-gendermale  0 -1.417051  0.2469647
-anger       0 -0.126804 -0.1153490
+            1          2           3
+(Intercept) 0 -2.9111055  0.76066324
+gendermale  0 -0.2474789 -1.66476340
+anger       0  0.1152342 -0.01153555
 
 > if (cache & file.exists("fcm2.rda")) {
 +     load("fcm2.rda")
@@ -322,3 +322,6 @@ score1       0.1008315  0.1638214
 score2      -0.2485943 -0.1711337
 
  *** Run successfully completed ***
+> proc.time()
+   user  system elapsed 
+158.001   0.296 158.669 

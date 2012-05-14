@@ -73,14 +73,14 @@
 }
 
 \references{
+  Frick, H., Strobl, C., Leisch, F., and Zeileis, A. (2012).
+  Flexible Rasch Mixture Models with Package psychomix.
+  \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
+  \url{http://www.jstatsoft.org/v48/i07/}.
+
   Rost, J. (1990). Rasch Models in Latent Classes: An Integration of Two
   Approaches to Item Analysis.
   \emph{Applied Psychological Measurement}, \bold{14}(3), 271--282.
-
-  % Rost, J., and von Davier, M. (1995). Mixture Distribution Rasch Models.
-  % In Fischer, G.H., and Molenaar, I.W. (eds.),
-  % \emph{Rasch Models: Foundations, Recent Developments, and Applications},
-  % chapter 14, pp. 257--268. Springer-Verlag, New York.
 }
 
 \seealso{

@@ -100,6 +100,9 @@ btmix <- function(formula, data, k, subset, weights,
     z@call <- cl
     z@labels <- labels(pc)
     z@mscale <- mscale(pc)
+    z@undecided <- if(is.null(undecided)) z@mscale[2] == 0 else undecided
+    z@ref <- ref
+    z@type <- match.arg(type, c("loglin", "logit"))
   }
   else {
     z@models <- lapply(z@models, function(model){
@@ -109,6 +112,9 @@ btmix <- function(formula, data, k, subset, weights,
       model@call$k <- model@flx.call$k
       model@labels <- labels(pc)
       model@mscale <- mscale(pc)
+      model@undecided <- if(is.null(undecided)) model@mscale[2] == 0 else undecided
+      model@ref <- ref
+      model@type <- match.arg(type, c("loglin", "logit"))
       return(model)
     })
     z <- as(z, "stepBTmix")
@@ -127,17 +133,20 @@ btmix <- function(formula, data, k, subset, weights,
 FLXMCbtreg <- function(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
   undecided = NULL, position = NULL, ...)
 {
-  retval <- new("FLXMC", weighted = TRUE, formula = formula,
+  retval <- new("FLXMCbt", weighted = TRUE, formula = formula,
                 name = "Bradley-Terry mixture model")
 
   retval@defineComponent <- expression({
 
     logLik <- function(x,y,...) {
-      loglikfun_btreg(para$btreg, y, weighted = FALSE,...)
+      #loglikfun_btreg(para$btreg, y, weighted = FALSE,...)
+      loglikfun_btreg(coef, y, labels, undecided, ref, type,...)
     }
 
-    new("FLXcomponent", df = para$btreg$df , logLik = logLik,
-        parameters = list(coef = para$btreg$coef))
+    ## new("FLXcomponent", df = para$btreg$df , logLik = logLik,
+    ##     parameters = list(coef = para$btreg$coef))
+    new("FLXcomponent", df = df , logLik = logLik,
+        parameters = list(coef = coef))
   })
 
   retval@fit <- function(x,y,w, ...){
@@ -146,7 +155,10 @@ FLXMCbtreg <- function(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
     btreg <- btReg.fit(y, weights = w, type = type, ref = ref,
       undecided = undecided, position = position, ...)
 
-    para <- list(btreg = btreg)
+    #para <- list(btreg = btreg)
+    para <- list(coef = btreg$coefficients, df = btreg$df,
+                 labels = btreg$labels, undecided = btreg$undecided,
+                 ref = btreg$ref, type = btreg$type)
 
     with(para, eval(retval@defineComponent))
   }
@@ -155,16 +167,23 @@ FLXMCbtreg <- function(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
 }
 
 ## compute individual contributions to log-likelihood function
-loglikfun_btreg <- function(object, data, weighted = TRUE, ...)
+loglikfun_btreg <- function(par, data, labels, undecided, ref, type, ...)
 {
-  nobj <- length(object$labels)
-  undecided <- object$undecided
+  ## nobj <- length(object$labels)
+  ## undecided <- object$undecided
+  ## npar <- nobj - !undecided
+  ## npc <- nobj * (nobj - 1)/2
+  ## ix <- which(upper.tri(diag(nobj)), arr.ind = TRUE)
+  ## ref <- which(object$ref == object$labels)
+  ## type <- object$type
+  ## par <- object$coefficients
+
+  nobj <- length(labels)
+  #undecided <- mscale[2] == 0 ## FIXME: should this be taken from btmix?
   npar <- nobj - !undecided
   npc <- nobj * (nobj - 1)/2
   ix <- which(upper.tri(diag(nobj)), arr.ind = TRUE)
-  ref <- which(object$ref == object$labels)
-  type <- object$type
-  par <- object$coefficients
+  ref <- which(ref == labels)
 
   par2logprob <- switch(type,
     "loglin" = function(i) {
@@ -188,6 +207,6 @@ loglikfun_btreg <- function(object, data, weighted = TRUE, ...)
     nrow = nrow(data01))
   rval <- drop(data01 %*% as.vector(logp))
 
-  ## return weighted result
-  if (weighted & !is.null(weights(object))) return(weights(object) * rval) else return(rval)
+  ## return result
+  return(rval)
 }

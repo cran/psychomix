@@ -1,6 +1,6 @@
 
-R version 2.14.1 (2011-12-22)
-Copyright (C) 2011 The R Foundation for Statistical Computing
+R version 2.15.0 (2012-03-30)
+Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -84,7 +84,6 @@ Loading required package: psychotools
 > effectsplot(cm4)
 Loading required package: effects
 Loading required package: grid
-Loading required package: nlme
 Loading required package: MASS
 Loading required package: colorspace
 
@@ -104,7 +103,7 @@ The following object(s) are masked from 'package:datasets':
 > cleanEx()
 
 detaching 'package:effects', 'package:colorspace', 'package:MASS',
-  'package:nlme', 'package:grid', 'package:nnet'
+  'package:grid', 'package:nnet'
 
 > nameEx("effectsplot")
 > ### * effectsplot
@@ -139,7 +138,6 @@ detaching 'package:effects', 'package:colorspace', 'package:MASS',
 > effectsplot(cm4)
 Loading required package: effects
 Loading required package: grid
-Loading required package: nlme
 Loading required package: MASS
 Loading required package: colorspace
 
@@ -159,7 +157,7 @@ The following object(s) are masked from 'package:datasets':
 > cleanEx()
 
 detaching 'package:effects', 'package:colorspace', 'package:MASS',
-  'package:nlme', 'package:grid', 'package:nnet'
+  'package:grid', 'package:nnet'
 
 > nameEx("raschmix")
 > ### * raschmix
@@ -583,7 +581,7 @@ detaching 'package:grid'
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  382.919 2 388.867 0 0 
+Time elapsed:  303.318 0.752 307.399 0 0 
 > grDevices::dev.off()
 null device 
           1 

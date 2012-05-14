@@ -1,6 +1,9 @@
 ## define own class for raschmix and stepRaschmix objects
+setClass("FLXMCrasch", contains = "FLXMC")
+
 setClass("raschmix",
          representation(scores = "character",
+                        deriv = "character",
                         extremeScoreProbs = "numeric",
                         rawScoresData = "table",
                         flx.call = "call",
@@ -14,11 +17,16 @@ setClass("stepRaschmix",
 
 
 ## define own class for btmix and stepBTmix objects
+setClass("FLXMCbt", contains = "FLXMC")
+
 setClass("btmix",
          representation(flx.call = "call",
                         nobs = "numeric",
 			labels = "character",
-			mscale = "numeric"),
+			mscale = "numeric",
+                        undecided = "logical",
+                        ref = "ANY",
+                        type = "character"),
          contains = "flexmix")
 
 setClass("stepBTmix",

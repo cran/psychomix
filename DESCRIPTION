@@ -1,6 +1,6 @@
 Package: psychomix
-Version: 0.2-1
-Date: 2012-03-02
+Version: 1.0-0
+Date: 2012-05-14
 Title: Psychometric Mixture Models
 Authors@R: c(person(given = "Hannah", family = "Frick", role = c("aut",
         "cre"), email = "Hannah.Frick@uibk.ac.at"), person(given =
@@ -20,11 +20,11 @@ Description: Psychometric mixture models based on flexmix
         models are implemented. Both mixture models can be estimated
         with or without concomitant variables. See vignette("raschmix",
         package = "psychomix") for details on the Rasch mixture models.
-Depends: R (>= 2.10.0), graphics, stats, methods, Formula, flexmix,
-        psychotools
+Depends: R (>= 2.10.0), graphics, stats, methods, Formula (>= 1.1-0),
+        flexmix (>= 2.3-7), psychotools (>= 0.1-2)
 Imports: graphics, stats, lattice, modeltools
 Suggests: effects, mRm, nnet
 License: GPL-2
-Packaged: 2012-03-02 18:54:28 UTC; zeileis
+Packaged: 2012-05-14 14:10:34 UTC; zeileis
 Repository: CRAN
-Date/Publication: 2012-03-02 18:55:08
+Date/Publication: 2012-05-14 14:41:39

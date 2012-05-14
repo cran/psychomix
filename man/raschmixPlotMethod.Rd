@@ -63,14 +63,20 @@
   \code{histogram}. For details see \code{\link[flexmix]{plot-methods}}.
 }
 \references{
-  Friedrich Leisch. FlexMix: A general framework for finite mixture
-  models and latent class regression in R. Journal of Statistical
-  Software, 11(8), 2004. http://www.jstatsoft.org/v11/i08/
+  Frick, H., Strobl, C., Leisch, F., and Zeileis, A. (2012).
+  Flexible Rasch Mixture Models with Package psychomix.
+  \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
+  \url{http://www.jstatsoft.org/v48/i07/}.
 
-  Friedrich Leisch. Exploring the structure of mixture model
-  components. In Jaromir Antoch, editor, Compstat 2004 - Proceedings in
-  Computational Statistics, pages 1405-1412. Physika Verlag, Heidelberg,
-  Germany, 2004. ISBN 3-7908-1554-3.
+  Leisch, F. (2004). FlexMix: A General Framework for Finite Mixture
+  Models and Latent Class Regression in R.
+  \emph{Journal of Statistical Software}, \bold{11}(8), 1--18.
+  \url{http://www.jstatsoft.org/v11/i08/}.
+
+  Leisch, F. (2004). Exploring the Structure of Mixture Model
+  Components. In Jaromir Antoch, editor, \emph{Compstat 2004 -- Proceedings in
+  Computational Statistics}, pages 1405--1412. Physika Verlag, Heidelberg,
+  Germany. ISBN 3-7908-1554-3.
 }
 
 \keyword{methods}

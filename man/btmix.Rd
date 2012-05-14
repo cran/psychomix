@@ -70,7 +70,10 @@ FLXMCbtreg(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
   \code{FLXMCbtreg} is the \code{\link[flexmix]{flexmix}}-driver for
   Bradley-Terry mixture models.
   
-  This has not yet been fully tested and may change in future versions.
+  The interface is designed along the same lines as \code{\link{raschmix}}
+  which is introduced in detail in Frick et al. (2012). However, the
+  \code{btmix} function has not yet been fully tested and may change in
+  future versions.  
 }
 
 \value{
@@ -91,6 +94,11 @@ FLXMCbtreg(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
   in R and Validation. Diploma Thesis, Ludwig-Maximilians-Universität
   München.
   
+  Frick, H., Strobl, C., Leisch, F., and Zeileis, A. (2012).
+  Flexible Rasch Mixture Models with Package psychomix.
+  \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
+  \url{http://www.jstatsoft.org/v48/i07/}.
+
   Grün, B., and Leisch, F. (2008). FlexMix Version 2: Finite Mixtures
   with Concomitant Variables and Varying and Constant Parameters.
   \emph{Journal of Statistical Software}, \bold{28}(4), 1--35.

@@ -35,6 +35,10 @@
     \item{\code{weights}:}{Optional weights of the observations.}
 
     \item{\code{scores}:}{Type of score model employed.}
+    \item{\code{deriv}:}{Type of derivatives used for computing
+    gradient and Hessian matrix. Analytical with sum algorithm (\code{"sum"}),
+    analytical with difference algorithm (\code{"diff"}, faster but numerically unstable),
+    or numerical.}
     \item{\code{extremeScoreProbs}:}{Estimated probability of solving
       either all or no items.}
     \item{\code{rawScoresData}:}{Table of raw scores from the data.}

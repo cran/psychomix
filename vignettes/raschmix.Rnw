@@ -24,6 +24,10 @@
 \Plainkeywords{mixed Rasch model, Rost model, mixture model, flexmix, R}
 
 \Abstract{
+  This introduction to the \proglang{R} package \pkg{psychomix} is a (slightly)
+  modified version of \cite{psychomix:Frick+Strobl+Leisch:2012}, published in the
+  \emph{Journal of Statistical Software}.
+
   Measurement invariance is an important assumption in the Rasch model and
   mixture models constitute a flexible way of checking for a violation of this
   assumption by detecting unobserved heterogeneity in item response data.
@@ -319,7 +323,7 @@ $\pi(k | x_i, \alpha)$ with parameters~$\alpha$ is employed:
 %
 \begin{equation}
   f(y_i | x_i, \alpha, \xi_1, \ldots, \xi_K)
-    ~=~ \sum_{k = 1}^{K}{\pi(k | x_i, \alpha) f(y_i | \xi_k)} \label{eq:MM:conc}
+    ~=~ \sum_{k = 1}^{K}{\pi(k | x_i, \alpha) f(y_i | \xi_k)}, \label{eq:MM:conc}
 \end{equation}
 %
 where commonly a multinomial logit model is chosen to parametrize
@@ -437,7 +441,7 @@ specification of the Rasch mixture model
 \begin{equation}
   f(y | \alpha, \beta, \delta) = 
   \prod_{i=1}^{n}{\sum_{k = 1}^{K}{\pi(k | x_i, \alpha)
-    ~ h(y_i | r_i, \beta_k) ~ g(r_i | \delta_k)}}. 
+    ~ h(y_i | r_i, \beta_k) ~ g(r_i | \delta_k)}} 
   \label{eq:RMMgeneral}
 \end{equation}
 %
@@ -617,7 +621,7 @@ Table~\ref{tab:methods} for an overview.
     statistics (which has a \fct{print} method)\\
     \fct{parameters} & \class{raschmix} & extract estimated parameters
     of the model for all or specified components, extract either
-    parameters $\alpha$ of concomitant model or item parameters
+    parameters $\alpha$ of the concomitant model or item parameters
     $\beta$ and/or score parameters $\delta$\\
     \fct{worth} & \class{raschmix} & extract the item parameters $\beta$ under
     the restriction $\sum_{j = 1}^{m}{\beta_j} = 0$\\
@@ -846,7 +850,7 @@ access the item parameters. The sum restriction employed in the
 specific \code{component} and to transform item \code{difficulty} parameters
 to item easiness parameters. The function \fct{parameters} also offers
 these two options but restricts the first item parameter to be zero (rather
-than the sum of item parameters), as this restriction is used in the internal
+than to restrict the sum of item parameters), as this restriction is used in the internal
 computations. 
 Thus, for the illustrative dataset with 10~items, \fct{parameters}
 returns 9 item parameters, leaving out the first item parameter
@@ -995,7 +999,7 @@ tStat <- 2 * (logLik(cm2b) - logLik(m2b))
 pValue <- pchisq(tStat, attr(logLik(cm2b), "df") - attr(logLik(m2b), "df"), lower.tail = FALSE)
 if(pValue < 0.001) pValue <- "< 0.001"
 @ 
-While the likelihood ratio (LR) test cannot be employed to chose the number
+While the likelihood ratio (LR) test cannot be employed to choose the number
 of components in a mixture model, it can be used to assess the
 concomitant variable model for a mixture model with a fixed number of
 components. Testing the 3-component model with concomitant
@@ -1076,6 +1080,7 @@ respectively (the single component model being only fitted without covariates).
 <<vMeanVarFit0, echo = TRUE, eval = FALSE>>=
 set.seed(1)
 va12_mix1 <- raschmix(resp2 ~ 1, data = va12, k = 1:4, scores = "meanvar")
+set.seed(2)
 va12_mix2 <- raschmix(resp2 ~ gender + anger, data = va12, k = 1:4,
   scores = "meanvar")
 @ 
@@ -1152,7 +1157,7 @@ print(xyplot(va12_mix3))
   want to curse, do curse, want to scold, do scold, want to shout, do shout.}
 \end{figure}
 
-The item profiles in three components can be visualized via
+The item profiles in the three components can be visualized via
 \code{plot(va12_mix3)} or\linebreak \code{xyplot(va12_mix3)} with the
 output of the latter being shown in Figure~\ref{fig:verbalProfile}. 
 The first six items are responses to the first sentence (bus), the remaining
@@ -1160,25 +1165,25 @@ six refer to the second sentence (train). The six reactions are grouped in
 \dquote{want}/\dquote{do} pairs: first for \dquote{curse}, then \dquote{scold},
 and finally \dquote{shout}.
 
-The second component displays a zigzag pattern which indicates that
+The third component displays a zigzag pattern which indicates that
 subjects in this component always find it easier or less extreme to
 \dquote{want to} react a certain way rather than to actually
 \dquote{do} react that way. In the other two components this want/do
 relationship is reversed, except for the shouting response (to either
 situation) and the scolding response to the train situation~(S2) in
-the third component.
+the first component.
 
-In the first component, there are no big differences in the estimated
+In the second component, there are no big differences in the estimated
 item parameters. Neither any situation (S1 or S2) nor any type of
 verbal response (curse, scold, or shout) is perceived as particularly
-extreme by subjects in this component. In components~2 and~3, the
+extreme by subjects in this component. In components~1 and~3, the
 situation is also not very relevant but subjects differentiate between
-the three verbal responses. This is best visible in component~3 where item
+the three verbal responses. This is best visible in component~1 where item
 difficulty is clearly increasing from response \dquote{curse} to
 response \dquote{shout}. Thus, shouting is perceived as the most
 extreme verbal response while cursing is considered a comparably
-moderate response. In component~2 this pattern is also visible albeit
-not as prominently as in component~3.
+moderate response. In component~3 this pattern is also visible albeit
+not as prominently as in component~1.
 
 % One could also consider the 3-component model \emph{with} concomitant
 % variables as its BIC was almost equivalent to that of the model

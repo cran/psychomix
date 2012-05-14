@@ -80,7 +80,7 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", nonExtremeProb = 1,
   \code{y1 + y2 + y3 + \ldots}. On the right-hand side, the concomitant
   variables are specified. If no concomitant variables are to be
   included in the model, the right-hand side of the is just written as
-  \code{~ 1}.
+  \code{~ 1}. See Frick et al. (2012) for a detailed introduction.
 
   \code{raschmix} processes this model description and calls
   \code{\link[flexmix]{stepFlexmix}} with the suitable driver
@@ -92,13 +92,6 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", nonExtremeProb = 1,
   The Rasch mixture model with saturated score distribution as proposed
   by Rost (1990) is also known as \dQuote{Mixed Rasch Model}.
   
-  % Internally \code{\link[flexmix]{stepFlexmix}}
-  % is called with suitable arguments to fit the finite mixture model with
-  % the EM algorithm.
-
-  % \code{FLXMCrasch} is the \code{\link[flexmix]{flexmix}}-driver for
-  % the Rasch mixture models with saturated score distribution as
-  % proposed by Rost (1990), also known as \dQuote{Mixed Rasch Model}.
 }
 
 \value{
@@ -111,6 +104,11 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", nonExtremeProb = 1,
 }
 
 \references{
+  Frick, H., Strobl, C., Leisch, F., and Zeileis, A. (2012).
+  Flexible Rasch Mixture Models with Package psychomix.
+  \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
+  \url{http://www.jstatsoft.org/v48/i07/}.
+
   Grün, B., and Leisch, F. (2008). FlexMix Version 2: Finite Mixtures
   with Concomitant Variables and Varying and Constant Parameters.
   \emph{Journal of Statistical Software}, \bold{28}(4), 1--35.

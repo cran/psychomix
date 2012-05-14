@@ -61,12 +61,19 @@ raschmix <- function(formula, data, k, subset, weights,
   ## data processing: remove observations without any item responses
   ## class(d$.response) <- c("itemresp", "matrix")
   ## missing.obs <- is.na(d$.response)
-  ## d <- d[!missing.obs, , drop = FALSE]
+  missing.obs <- apply(is.na(d$.response), 1, all)
+  d <- d[!missing.obs, , drop = FALSE]
+
+  ## data processing: remove observations with any NA in concomitant variables
+  #conc.na <- apply(is.na(d[-which(".response" == names(d))]), 2, any)
+  #d <- d[-conc.na, , drop = FALSE]
+  conc.cc <- complete.cases(d[-which(".response" == names(d))])
+  d <- d[conc.cc, , drop = FALSE]
 
   ## data processing: remove observations with any NA (required for flexmix)
   # (removing only observations with missings in covariates is not enough)
-  cc <- complete.cases(d)
-  d <- d[cc, , drop = FALSE]
+  #cc <- complete.cases(d)
+  #d <- d[cc, , drop = FALSE]
 
   ## data processing: non-identified items
   n.total <- nrow(d$.response)
@@ -84,12 +91,14 @@ raschmix <- function(formula, data, k, subset, weights,
  
   
   ## data processing: extreme scorers
+  ## extreme scorer = subjects who score all non-missing items with either 0 or 1
   score.0 <- rowSums(d$.response, na.rm = TRUE) == 0
   n.0 <- sum(score.0)
   d <- d[!score.0, , drop = FALSE]
-  score.m <- rowSums(d$.response, na.rm = TRUE) == ncol(d$.response)
   # <FIXME> for observations with NA in item responses: extreme scorer definition
   # of scoring all (non-missing) items needs to be implemented </FIXME>
+  ## score.m <- rowSums(d$.response, na.rm = TRUE) == ncol(d$.response)
+  score.m <- (rowSums(d$.response, na.rm = TRUE) + rowSums(is.na(d$.response))) == ncol(d$.response)
   n.m <- sum(score.m)
   d <- d[!score.m, , drop = FALSE]
 
@@ -106,10 +115,6 @@ raschmix <- function(formula, data, k, subset, weights,
   scores <- match.arg(head(tolower(scores), 1L), c("saturated", "meanvar", "constant"))
   if(is.null(model)) model <- FLXMCrasch(scores = scores, nonExtremeProb = pi.nonex, ref = ref,
     gradtol = gradtol, deriv = deriv, hessian = hessian)
-
-  ## <FIXME> additionally incorporate "conditional" version of the Rasch mixture model? </FIXME>
-  raschcond <- FALSE
-  ## if (raschcond) model <- FLXMCraschcond(gradtol = gradtol, deriv = deriv, hessian = hessian)
 
   ## control parameters
   ctrl <- as(control, "FLXcontrol")  
@@ -147,15 +152,14 @@ raschmix <- function(formula, data, k, subset, weights,
   
   ## classify
   ## for Rost model: adjust df, logLik
-  if (class(z) == "flexmix") {
-    if (!raschcond) {
-      z@df <- z@df + (pi.0 != 0) + (pi.m != 0)
-      if (pi.0 != 0) z@logLik <- z@logLik + n.0*log(pi.0)
-      if (pi.m != 0) z@logLik <- z@logLik + n.m*log(pi.m)
-    }
+  if (class(z) == "flexmix") { ## is(z, "flexmix")?
+    z@df <- z@df + (pi.0 != 0) + (pi.m != 0)
+    if (pi.0 != 0) z@logLik <- z@logLik + n.0*log(pi.0)
+    if (pi.m != 0) z@logLik <- z@logLik + n.m*log(pi.m)
     z <- as(z, "raschmix")
     z@scores <- scores
-    if (!raschcond) z@extremeScoreProbs <- c(pi.0, pi.m)
+    z@deriv <- deriv
+    z@extremeScoreProbs <- c(pi.0, pi.m)
     z@rawScoresData <- rs
     z@flx.call <- z@call
     z@call <- cl
@@ -163,19 +167,16 @@ raschmix <- function(formula, data, k, subset, weights,
     z@identified.items <- status
   }
   else {
-    if (!raschcond){
-      if (pi.0 != 0) z@logLiks <- z@logLiks + n.0*log(pi.0)
-      if (pi.m != 0) z@logLiks <- z@logLiks + n.m*log(pi.m)
-    }
+    if (pi.0 != 0) z@logLiks <- z@logLiks + n.0*log(pi.0)
+    if (pi.m != 0) z@logLiks <- z@logLiks + n.m*log(pi.m)
     z@models <- lapply(z@models, function(model){
-      if (!raschcond) {
-        model@df <- model@df + (pi.0 != 0) + (pi.m != 0)
-        if (pi.0 != 0) model@logLik <- model@logLik + n.0*log(pi.0)
-        if (pi.m != 0) model@logLik <- model@logLik + n.m*log(pi.m)
-      }
+      model@df <- model@df + (pi.0 != 0) + (pi.m != 0)
+      if (pi.0 != 0) model@logLik <- model@logLik + n.0*log(pi.0)
+      if (pi.m != 0) model@logLik <- model@logLik + n.m*log(pi.m)
       model <- as(model, "raschmix")
       model@scores <- scores
-      if (!raschcond) model@extremeScoreProbs <- c(pi.0, pi.m)
+      model@deriv <- deriv
+      model@extremeScoreProbs <- c(pi.0, pi.m)
       model@rawScoresData <- rs
       model@flx.call <- model@call
       model@call <- cl
@@ -200,21 +201,18 @@ FLXMCrasch <- function(formula = . ~ ., scores = "saturated",
 {
   scores <- match.arg(scores, c("saturated", "meanvar", "constant"))
 
-  retval <- new("FLXMC", weighted = TRUE, formula = formula,
+  retval <- new("FLXMCrasch", weighted = TRUE, formula = formula, 
                 name = sprintf("Rasch mixture model (%s scores)", scores))
 
   retval@defineComponent <- expression({
 
     ## include score probabilities pi_rk
     logLik <- function(x,y,...) {
-      loglikfun_rasch(para$rm, y, pr = para$prk, weighted = FALSE,...)
+      loglikfun_rasch(item, score, y, deriv = deriv, scores = scores, nonExtremeProb = nonExtremeProb, ...)
     }
 
-    ## adjust df
-    df <- para$rm$df + length(para$gamma)
-
     new("FLXcomponent", df = df , logLik = logLik,
-        parameters = list(item = para$rm$coef, score = para$gamma))
+        parameters = list(item = item, score = score))
   })
 
   retval@fit <- function(x,y,w, ...){
@@ -228,7 +226,7 @@ FLXMCrasch <- function(formula = . ~ ., scores = "saturated",
 
     # number of items and observations
     m <- ncol(y)
-    nk <- sum(w)
+    #nk <- sum(w) ## obsolete
 
     ## raw scores and associated number of observations
     ## (some of which may be zero)
@@ -278,7 +276,12 @@ FLXMCrasch <- function(formula = . ~ ., scores = "saturated",
     # conditional MLE -> r = 0 and r = "number of items" are excluded 
     psi <- psi * nonExtremeProb
 
-    para <- list(rm = rasch.model, prk = psi, gamma = gamma[!alias])
+    ## df and score parameters
+    score <- gamma[!alias]
+    df <- rasch.model$df + length(score)
+    
+    ## collect elements necessary for loglikfun    
+    para <- list(item = rasch.model$coef, score = score, df = df)
 
     with(para, eval(retval@defineComponent))
   }
@@ -287,80 +290,118 @@ FLXMCrasch <- function(formula = . ~ ., scores = "saturated",
 }
 
 
-## Flexmix driver for "conditional model"
-FLXMCraschcond <- function(formula = . ~ .,
-  gradtol = 1e-6, deriv = "sum", hessian = FALSE, ...)
-{
-  retval <- new("FLXMC", weighted = TRUE, formula = formula,
-                name = "mixture Rasch model (cond.)")
-
-  retval@defineComponent <- expression({
-
-    logLik <- function(x, y, ...) loglikfun_rasch(rasch.model, y, weighted = FALSE,...) 
-
-    new("FLXcomponent", df = rasch.model$df, logLik = logLik,
-          parameters = list(coef = rasch.model$coef))
-  })
-
-  retval@fit <- function(x,y,w,...){
-    ## set weights to zero if computationally zero
-    ## (FIXME: should this be checked by flexmix?)
-    w <- ifelse(w < .Machine$double.eps^(1/1.5), 0, w)
-    
-    ## estimate parameters
-    rasch.model <- RaschModel.fit(y, weights = w,
-      gradtol = gradtol, deriv = deriv, hessian = hessian, ...)
-    with(rasch.model, eval(retval@defineComponent))
-  }
-  retval@dist <- "Rasch"
-  retval
-}
-
-
 ## compute individual contributions to log-likelihood function
-loglikfun_rasch <- function(object, data, pr = NULL, weighted = TRUE, ...) {
+loglikfun_rasch <- function(item, score, y, deriv, scores, nonExtremeProb, ...) {
 
   ## in case of non-identified parameters return log(0)  
-  if(any(object$items != "0/1")) return(rep(-Inf, NROW(data)))
+  ##if(any(object$items != "0/1")) return(rep(-Inf, NROW(y)))
+  n <- nrow(y)
+  #cm <- colMeans(y, na.rm = TRUE)
+  #status <- as.character(cut(cm, c(-Inf, 1/(2 * n), 1 - 1/(2 * n), Inf), labels = c("0", "0/1", "1")))
+  #status[is.na(status)] <- "NA"
+  #status <- factor(status, levels = c("0/1", "0", "1", "NA"))
+  #ident <- status == "0/1"
+  #names(status) <- colnames(y)
+  #if(any(status != "0/1")) return(rep(-Inf, NROW(y)))
 
+  ## missing values?
+  any_y_na <- any(is.na(y))
+ 
   ## in case of NAs
-  if(object$na) {
+  if(any_y_na) {
     ## compute all NA patterns
-    na_patterns <- factor(apply(is.na(data), 1,
+    na_patterns <- factor(apply(is.na(y), 1,
                                 function(z) paste(which(z), collapse = "\r")))
-
+      
     ## replace NAs
-    data[is.na(data)] <- 0
+    y[is.na(y)] <- 0
   }
-
-  ## estimated parameters (including contrast)
-  par <- c(0, object$coefficients)
-  
   ## associated elementary symmetric functions (of order 0)
-  esf <- if(object$na) {
-    lgamma <- rep(0, NROW(data))
+  esf <- if(any_y_na) {
+    lgamma <- rep(0, NROW(y))
     for(i in levels(na_patterns)) {
       wi1 <- which(na_patterns == i)
-      wi2 <- which(names(object$elementary_symmetric_functions) == i)
-      gamma_i <- object$elementary_symmetric_functions[[wi2]][[1]][-1]
-      lgamma[wi1] <- log(gamma_i)[rowSums(data[wi1, , drop = FALSE])]
+      wi_i <- as.integer(strsplit(i, "\r")[[1]])
+      par_i <- if(length(wi_i) < 1) c(0, par)
+               else c(0, par)[-wi_i]
+      gamma_i <- elementary_symmetric_functions(par_i,
+                                                order = 1 - (deriv == "numeric"), 
+                                                diff = deriv == "diff")[[1]][-1]
+      lgamma[wi1] <- log(gamma_i)[rowSums(y[wi1, , drop = FALSE])]
     }
     lgamma
   } else {
-    gamma <- object$elementary_symmetric_functions[[1]][-1]
-    log(gamma)[rowSums(data)]
+    gamma <- elementary_symmetric_functions(c(0, item),
+                                            order = 1 - (deriv == "numeric"), 
+                                            diff = deriv == "diff")[[1]][-1]
+    log(gamma)[rowSums(y)]
   }
+
   
+  ## estimated parameters (including contrast)
+  par <- c(0, item)
+   
   ## log-likelihood contribution
   ## = parameter sum on log scale - log(sum of all permutations)
-  rval <- -drop(data %*% par) - esf
+  rval <- -drop(y %*% par) - esf
 
-  ## for the original model by Rost (1990)
+  ## for the original model by Rost (1990) 
   ## log(probability of row sum r) added to log-likelihood
-  if (!is.null(pr)) rval <- log(pr)[rowSums(data)] + rval
+  ## number of items and observations
+  m <- sum(colSums(y) > 0 & colSums(y) < nrow(y))
+  rs <- which(tabulate(rowSums(y), ncol(y)-1L) > 0) # FIXME: use ncol(y) - 1L or m?
+  nscores <- length(rs)
+  #if (nscores != (length(score)+1)) browser()
+  switch(scores,
+    "saturated" = {
+      #xaux <- diag(nscores)
+      xaux <- diag(length(score) + 1)
+      extra <- 0
+    },
+    "meanvar" = {
+      rr <- 1:(m-1L)
+      xaux <- cbind(rr / m, 4 * rr * (m - rr) / m^2)
+      extra <- NULL
+    },      
+    "constant" = {
+      xaux <- matrix(1, nrow = m - 1L, ncol = 1L)
+      extra <- 0
+    }
+    )
 
-  ## return weighted result
-  if (weighted) return(weights(object) * rval) else return(rval)
+  ## calculate score probabilities
+  eta <- colSums(c(extra, score) * t(xaux), na.rm = TRUE)
+  psi <- exp(eta) / sum(exp(eta))
+    
+  ## conditional MLE -> r = 0 and r = "number of items" are excluded 
+  psi <- psi * nonExtremeProb
+
+  ## check for remaining problems
+  if(any(is.na(psi))) stop("some parameters in score model not identified")
+
+  ## for saturated model:
+  if (scores == "saturated"){
+    ## return probability 0 for scores not present in the data
+    psi.full <- numeric(m - 1L)
+    psi.full[c(rs[1], as.numeric(names(score)))] <- psi
+    psi <- psi.full
+  }
+
+  ## FIXME: @Achim: stimmt das? Ist es richtig, fuer's constant gar nichts eingeht?
+  if (scores == "constant") psi <- NULL
+  
+  if (!is.null(psi)) rval <- log(psi)[rowSums(y)] + rval
+  ## Alternative: employ empirical distribution of the raw scores
+  #if (scores == "constant") psi <- tabulate(rowSums(y), 1:(m-1))
+  #rval <- log(psi)[rowSums(y)] - drop(y %*% par) - esf
+  ## dann auch einfach rval in einem Schritt ausrechnen.
+
+  ## replace -Inf with smallest (machine) value possible
+  ## to keep flexmix from stopping
+  rval[!is.finite(rval)] <- .Machine$double.xmin
+  
+  ## return result
+  return(rval)
 }
 
 ## methods for S3 class "itemresp"

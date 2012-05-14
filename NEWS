@@ -1,6 +1,15 @@
+Changes in Version 1.0-0
+
+  o Official first stable release of the raschmix() functionality in the
+    package, accompanying the manuscript "Flexible Rasch Mixture Models
+    with Package psychomix" by Frick, Strobl, Leisch, and Zeileis,
+    published in the Journal of Statistical Software 48(7). See
+    citation("psychomix") for details.
+
+
 Changes in Version 0.2-1
 
-  o For increased numerical stability the the default minprior control
+  o For increased numerical stability the default minprior control
     parameter in raschmix() is now 0.05 (as in flexmix) and not 0
     (as in the previous psychomix version).
 

@@ -37,6 +37,13 @@
     \item{\code{nobs}:}{Number of observations.}
     \item{\code{labels}:}{Labels of objects compared.}
     \item{\code{mscale}:}{Measurement scale of paired comparisons data.}
+    \item{\code{undecided}:}{logical. Should an undecided parameter be estimated?}
+    \item{\code{ref}:}{character or numeric. Which object parameter should be the reference
+    category, i.e., constrained to zero?}
+    \item{\code{type}:}{character. Should an auxiliary log-linear Poisson model or logistic
+    binomial be employed for estimation? The latter is only available if not undecided
+    effects are estimated.}
+
   }
 }
 \section{Extends}{
