@@ -1326,7 +1326,8 @@ cbind(parameters(cm2b, which = "concomitant"),
 %
 while the item and score parameters cannot be accessed separately (as it is possible for
 \class{raschmix} objects). They can only be accessed jointly as the 
-\code{"model"} parameters.
+\code{"model"} parameters. The method for \class{raschmix} objects also excludes 
+non-identified or aliased parameters, e.g., the parameter for the achor item.
 %
 <<appendixParametes>>=
 parameters(fcm2b, which = "model")

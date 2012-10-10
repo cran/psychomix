@@ -35,6 +35,7 @@
     \item{\code{weights}:}{Optional weights of the observations.}
 
     \item{\code{scores}:}{Type of score model employed.}
+    \item{\code{restricted}:}{Logical. Is the score model equal across components?}
     \item{\code{deriv}:}{Type of derivatives used for computing
     gradient and Hessian matrix. Analytical with sum algorithm (\code{"sum"}),
     analytical with difference algorithm (\code{"diff"}, faster but numerically unstable),

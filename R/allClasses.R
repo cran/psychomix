@@ -3,6 +3,7 @@ setClass("FLXMCrasch", contains = "FLXMC")
 
 setClass("raschmix",
          representation(scores = "character",
+                        restricted = "logical",
                         deriv = "character",
                         extremeScoreProbs = "numeric",
                         rawScoresData = "table",
@@ -14,6 +15,10 @@ setClass("raschmix",
 setClass("stepRaschmix",
          representation(flx.call = "call"),
          contains = "stepFlexmix")
+
+setClass("FLXRoptimRasch",
+         representation(scores = "ANY"),
+         contains="FLXRoptim")
 
 
 ## define own class for btmix and stepBTmix objects

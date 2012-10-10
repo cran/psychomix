@@ -115,41 +115,37 @@ FLXMCbtreg(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
 }
 
 \examples{
-##########
-## Data ##
-##########
 
+\donttest{
+## Data
 data("GermanParties2009", package = "psychotools")
 
 ## omit single observation with education = 1
 gp <- subset(GermanParties2009, education != "1")
 gp$education <- factor(gp$education)
 
-##################################
-## Bradley-Terry mixture models ##
-##################################
-
+## Bradley-Terry mixture models
 set.seed(1)
-## fit model for k = 1 without concomitant variables
-cm1 <- btmix(preference ~ 1, data = gp, k = 1)
-
-## fit models for k = 2, 3, 4, 5 with concomitant variables
-cm <- btmix(preference ~ gender + education + age + crisis, data = gp,
-    k = 2:5, nrep = 5)
+## fit models for k = 1, ..., 4 with concomitant variables
+cm <- btmix(preference ~ gender + education + age + crisis,
+  data = gp, k = 1:4, nrep = 3)
 
 ## inspect results
-plot(1:5, c(BIC(cm1), BIC(cm)), type = "b")
+plot(cm)
 
 ## select model
 cm4 <- getModel(cm, which = "4")
 
 ## inspect mixture and effects
+library("lattice")
 xyplot(cm4)
 effectsplot(cm4)
 
 ## effect of education
 eff4 <- allEffects(cm4)
 effectsplot(eff4, selection = "education")
+}
+
 }
 
 \keyword{paired comparisons}

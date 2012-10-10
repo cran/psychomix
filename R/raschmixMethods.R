@@ -5,7 +5,10 @@ setMethod("worth", "raschmix", function(object, difficulty = TRUE,
                      component = component)
 
   ## apply transformation
-  worth <- apply(coef, 2, function(x){c(0,x) - mean(c(0,x))})
+  worth <- apply(coef, 2, function(x){
+      x[is.na(x)] <- 0 ## if aliased item is inculded as NA
+      x - mean(x[is.finite(x)])
+  })
 
   ## include non-identified items (if any)
   rval <- matrix(NA, ncol = ncol(worth), nrow = length(object@identified.items))
@@ -22,9 +25,9 @@ setMethod("worth", "raschmix", function(object, difficulty = TRUE,
 scoreProbs <- function(object, component = NULL, simplify = TRUE){
 
   ## get score parameters
-  gamma <- parameters(object, which = "score", component = component,
+  delta <- parameters(object, which = "score", component = component,
                       simplify = FALSE)
-  gamma <- lapply(gamma, function(x) x$score)
+  delta <- lapply(delta, function(x) x$score)
 
   ## set up design matrix
   m <- sum(object@identified.items == "0/1")
@@ -47,10 +50,18 @@ scoreProbs <- function(object, component = NULL, simplify = TRUE){
     )
 
   ## calculate score probabilities
-  scores <- sapply(gamma, simplify = simplify, FUN = function(gamma){
+  scores <- sapply(delta, simplify = simplify, FUN = function(delta){
+
+    ## in case any of the scores was not estimated in this component
+    ## (due to weight 0)
+    if(object@scores == "saturated"){
+        ref <- which(is.na(delta))
+        delta <- delta[is.finite(delta)]
+        xaux <- diag(length(delta) + 1)
+    }    
 
     ## probabilities (colSums instead of %*% to get na.rm = TRUE)
-    eta <- colSums(c(extra, gamma) * t(xaux), na.rm = TRUE)
+    eta <- colSums(c(extra, delta) * t(xaux), na.rm = TRUE)
     psi <- exp(eta) / sum(exp(eta))
     
     ## check for remaining problems
@@ -60,7 +71,7 @@ scoreProbs <- function(object, component = NULL, simplify = TRUE){
     ## return probability 0 for scores not present in the data
     if (object@scores == "saturated"){
       psi.full <- numeric(m - 1L)
-      psi.full[rs] <- psi
+      psi.full[c(ref, as.numeric(names(delta)))] <- psi
       psi <- psi.full
     }
 
@@ -95,10 +106,24 @@ setMethod("parameters", "raschmix", function(object,
     if (length(component) == 1) para <- para[[1]]
 
     para <- lapply(para, function(comp){
+
+#      comp$item <- comp$item[is.finite(comp$item)]
+#      comp$item <- comp$item[-1]
+      comp$item[min(which(is.finite(comp$item)))] <- NA  
       if (!difficulty) comp$item <- -comp$item
+
+#      alias <- if(length(comp$score) > 0L) !is.finite(comp$score) else logical(0L)
+#      comp$score <- comp$score[!alias]
+      if(object@scores == "saturated"){
+        score.full <- rep(NA, length.out = (length(comp$score)+1))
+        names(score.full) <- seq_along(score.full)
+        score.full[as.numeric(names(comp$score))] <- comp$score
+        comp$score <- score.full
+      }
       if (object@scores == "meanvar"){
         names(comp$score) <- c("location", "dispersion")
       }
+      
       if (which == "score") comp$item <- NULL
       if (which == "item") comp$score <- NULL
       return(comp)

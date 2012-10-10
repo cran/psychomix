@@ -6,22 +6,21 @@ setMethod("plot", signature(x = "raschmix", y = "missing"),
                    pch = 19, type = NULL, ylim = NULL, xlab = "Items",
                    ylab = NULL, legend = TRUE, pos = "topright", ...){
   ##  modified code from psychotree
-            
-  ## <FIXME>
-  ## general question:
-  ## -Inf and Inf is the same across all components, but is NA?
-  ## --> untangle (+/-)Inf and NA in cf_ident?
-  ## first approach: assume NA to behave like (+/-)Inf
-  ## </FIXME>
-
+         
   ## parameters to be plotted
   if (is.null(component)) component <- 1:x@k
   cf <- worth(x, difficulty = difficulty)
   cf <- cf[ ,component, drop = FALSE]
-  cf_ident <- is.finite(cf[,1]) & !is.na(cf[,1])
+  cf_ident <- is.finite(cf)
   cf_inf <- cf >= Inf
   cf_ninf <- cf <= -Inf
-  if(!center) cf <- cf - (cf[cf_ident,])[1,]
+  if(!center){
+      ref <- sapply(component, function(x){
+          ref.i <- min(which(cf_ident[,x]))
+          cf[ref.i, x]
+          })
+      cf <- cf - matrix(rep(ref, each = nrow(cf)), ncol = ncol(cf))
+  }
   cf_ref <- 0
   ncf <- nrow(cf)
 
@@ -75,13 +74,13 @@ setMethod("plot", signature(x = "raschmix", y = "missing"),
              is.logical(all.equal(nrow(cex), nrow(cf)))))
       stop("cex needs to be a either a vector or a matrix of dimesion number of item parameters x number of components")
   }
-  pch[!cf_ident,] <- NA
+  pch[!cf_ident] <- NA
   if (is.null(linecol)) {linecol <- col[1, ]} else {
     linecol <- rep(linecol, length.out = ncol(cf))
   }
   lty <- rep(lty, length.out = ncol(cf))
 
-  if(is.null(ylim)) ylim <- range(cf[cf_ident,])
+  if(is.null(ylim)) ylim <- range(cf[cf_ident])
   ylim <- rep(ylim, length.out = 2)
   if(any(!is.finite(cf))) {
     ydiff <- diff(ylim) * 0.7
@@ -90,10 +89,10 @@ setMethod("plot", signature(x = "raschmix", y = "missing"),
   }
 
   ## substitute non-identified parameters with plottable values
-  cf[is.na(cf[,1]),] <- cf_ref
+  cf[is.na(cf)] <- cf_ref
   if(index) {
-    cf[cf_ninf[,1],] <- ylim[1]
-    cf[cf_inf[,1],] <- ylim[2]
+    cf[cf_ninf] <- ylim[1]
+    cf[cf_inf] <- ylim[2]
   }
 
   if(is.null(ylab)) ylab <- paste(if(center) "Centered item" else "Item",
@@ -122,10 +121,16 @@ setMethod("plot", signature(x = "raschmix", y = "missing"),
     }
     if(legend) {
       if (any(!cf_ident)){
+        ni_items <- unlist(lapply(component, function(comp){
+          if(any(!cf_ident[,comp])){
+            paste("Comp. ", comp, ": ", paste(
+              rownames(cf)[!cf_ident[,comp]], collapse = ", "), sep = "")
+            } 
+          }))
         legend(pos, c(paste("Comp.", component),
-                      "Not identified:", rownames(cf)[!cf_ident]),
-               fill = c(col[1,], rep(NA, 1 + sum(!cf_ident))),
-               border = rep(NA, ncol(cf) + 1 + sum(!cf_ident)), bty = "n")
+                      "Not identified:", ni_items),
+               fill = c(col[1,], rep(NA, 1 + length(ni_items))),
+               border = rep(NA, ncol(cf) + 1 + length(ni_items)), bty = "n")
       } else {
         legend(pos, paste("Comp.", component), fill = col[1,], bty = "n")
       }
@@ -150,8 +155,12 @@ setMethod("plot", signature(x = "raschmix", y = "missing"),
     }
     if(index) axis(1, at = ix, labels = rownames(cf))
     if (length(component) > 1 & legend){
+      pch <- sapply(component, function(x){
+          ref.i <- min(which(cf_ident[,x]))
+          pch[ref.i, x]
+      })
       legend(pos, legend = paste("Comp.", component), bty = "n",
-             col = col[1,], pch = pch[cf_ident,][1,], lty = lty)
+             col = col[1,], pch = pch, lty = lty)
       ## <FIXME> sensible transformation of "plot-cex" to "legend-cex"? </FIXME>
     }
   }

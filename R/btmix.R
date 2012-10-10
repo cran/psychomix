@@ -139,12 +139,9 @@ FLXMCbtreg <- function(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
   retval@defineComponent <- expression({
 
     logLik <- function(x,y,...) {
-      #loglikfun_btreg(para$btreg, y, weighted = FALSE,...)
       loglikfun_btreg(coef, y, labels, undecided, ref, type,...)
     }
 
-    ## new("FLXcomponent", df = para$btreg$df , logLik = logLik,
-    ##     parameters = list(coef = para$btreg$coef))
     new("FLXcomponent", df = df , logLik = logLik,
         parameters = list(coef = coef))
   })
@@ -152,10 +149,10 @@ FLXMCbtreg <- function(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
   retval@fit <- function(x,y,w, ...){
     if(!inherits(y, "paircomp")) y <- paircomp(y,
       labels = unique(unlist(strsplit(colnames(y), ":", fixed = TRUE))))
+
     btreg <- btReg.fit(y, weights = w, type = type, ref = ref,
       undecided = undecided, position = position, ...)
 
-    #para <- list(btreg = btreg)
     para <- list(coef = btreg$coefficients, df = btreg$df,
                  labels = btreg$labels, undecided = btreg$undecided,
                  ref = btreg$ref, type = btreg$type)
@@ -169,22 +166,13 @@ FLXMCbtreg <- function(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
 ## compute individual contributions to log-likelihood function
 loglikfun_btreg <- function(par, data, labels, undecided, ref, type, ...)
 {
-  ## nobj <- length(object$labels)
-  ## undecided <- object$undecided
-  ## npar <- nobj - !undecided
-  ## npc <- nobj * (nobj - 1)/2
-  ## ix <- which(upper.tri(diag(nobj)), arr.ind = TRUE)
-  ## ref <- which(object$ref == object$labels)
-  ## type <- object$type
-  ## par <- object$coefficients
-
   nobj <- length(labels)
-  #undecided <- mscale[2] == 0 ## FIXME: should this be taken from btmix?
   npar <- nobj - !undecided
   npc <- nobj * (nobj - 1)/2
   ix <- which(upper.tri(diag(nobj)), arr.ind = TRUE)
-  ref <- which(ref == labels)
-
+  if(is.null(ref)) ref <- nobj
+  if(is.character(ref)) ref <- match(ref, labels)
+  
   par2logprob <- switch(type,
     "loglin" = function(i) {
       p <- rep(0, nobj)

@@ -17,6 +17,11 @@ mres
 
 parameters(mr)
 
+## mrrefit <- refit(mr)
+## summary(mrrefit)
+
+## -------------------------------------------------
+
 ## ### DIFSim
 ## data("DIFSim", package = "psychotree")
 ## #data("DIFSim", package = "psychotools")

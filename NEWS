@@ -1,3 +1,17 @@
+Changes in Version 1.1-0
+
+  o Improved functionality for raschmix() to allow for differences 
+    between components in terms of identified parameters.
+
+  o Improved function raschmix() to leverage new functionality from 
+    the flexmix package: Parameter estimates from the previous M-step 
+    can now be used for initialization.
+
+  o Function raschmix() can now model the score distribution to be 
+    equal across all components (for both a "saturated" and a "meanvar" 
+    specification of the score model).
+
+
 Changes in Version 1.0-0
 
   o Official first stable release of the raschmix() functionality in the

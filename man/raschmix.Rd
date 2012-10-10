@@ -13,12 +13,13 @@
 
 \usage{
 raschmix(formula, data, k, subset, weights, scores = c("saturated", "meanvar"),
-  nrep = 3, cluster = NULL, control = NULL, verbose = TRUE,
+  restricted = FALSE, nrep = 3, cluster = NULL, control = NULL, verbose = TRUE,
   drop = TRUE, unique = FALSE, which = NULL, gradtol = 1e-6, deriv = "sum",
-  hessian = FALSE, model = NULL, \dots)
+  hessian = FALSE, restart = TRUE, model = NULL, \dots)
 
-FLXMCrasch(formula = . ~ ., scores = "saturated", nonExtremeProb = 1,
-  ref = 1, gradtol = 1e-6, deriv = "sum", hessian = FALSE, \dots)
+FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb = 1,
+  ref = 1, gradtol = 1e-6, deriv = "sum", hessian = FALSE,
+  restart = TRUE, \dots)
 }
 
 \arguments{
@@ -35,6 +36,8 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", nonExtremeProb = 1,
     for the score probabilities: either a \code{saturated} model with a
     separate parameter for each score probability, or, for \code{meanvar},
     a multinomial logit model with a location and a scale parameter.}
+  \item{restricted}{Logical. Should the score distributions be
+    restricted to being equal across components?}
   \item{nrep}{Number of runs for the starting values for the EM
     algorithm (if \code{cluster = "mrm"}) or number of runs of the EM
     algorithm itself.}
@@ -64,6 +67,11 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", nonExtremeProb = 1,
   \item{ref}{Reference category for the saturated score model.}
   \item{gradtol, deriv, hessian}{Control parameters passed to
     \code{\link[psychotools]{RaschModel.fit}} for the M-step.}
+  \item{restart}{Logical. Should the estimation of the item parameters
+    be restarted in each iteration? If FALSE, the estimates from the
+    previous M-step are used as starting values.}
+  \item{delta}{Parameters of score model. If \code{NULL}, a score model
+    is estimated.}
   \item{model}{An object inheriting from class \code{"FLXM"} for the
     \code{\link[flexmix]{flexmix}}-driver, as typically produced by
     \code{FLXMCrasch}. By default \code{FLXMCrasch} is called automatically
@@ -139,7 +147,7 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", nonExtremeProb = 1,
 ## Data ##
 ##########
 
-## simulate response from Rost's scenario 2
+## simulate response from Rost's scenario 2 (with 2 latent classes)
 set.seed(1)
 r2 <- simRaschmix(design = "rost2")
 
@@ -150,7 +158,15 @@ d <- data.frame(
 )
 d$resp <- r2
 
+## fit model with 2 latent classes (here the number is known a priori)
+m <- raschmix(r2, k = 2, scores = "saturated")
+summary(m)
 
+## see below for examples which do not use this a priori information
+## (these take a little longer to compute) 
+
+
+\donttest{
 ####################################################
 ## Rasch mixture model with saturated score model ##
 ## (Rost, 1990)                                   ##
@@ -193,6 +209,7 @@ head(posterior(m1b)) ## for first observations only
 
 ## compare resulting clusters with true groups
 table(model = clusters(m1b), true = attr(r2, "cluster"))
+}
 
 ## optionally: leverage mRm package for faster computation of
 ## starting values
@@ -205,6 +222,7 @@ table(clusters(m1b), clusters(m1b_mrm))
 worth(m1b) - worth(m1b_mrm)
 }
 
+\donttest{
 ################################################################
 ##  Rasch mixture model with mean/variance score distribution ##
 ## (Rost & von Davier, 1995)                                  ##
@@ -229,6 +247,7 @@ for(i in 1:2) lines(attr(r2, "difficulty")[,i], lty = 2, type = "b")
 ## results from non-parametric and parametric specification
 ## essentially identical
 max(abs(worth(m1b) - worth(m2b, component = 2:1)))
+}
 
 
 ###########################

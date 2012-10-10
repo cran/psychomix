@@ -2,15 +2,8 @@
 > options(width = 70, prompt = "R> ", continue = "+  ")
 
 > library("psychomix")
-Loading required package: Formula
 Loading required package: flexmix
 Loading required package: lattice
-Loading required package: modeltools
-Loading required package: stats4
-Loading required package: multcomp
-Loading required package: mvtnorm
-Loading required package: survival
-Loading required package: splines
 Loading required package: psychotools
 
 > data("VerbalAggression", package = "psychotools")
@@ -85,6 +78,7 @@ AIC: 17728.08   BIC: 17917.35
 
 > parameters(m1b, "item")
                Comp.1     Comp.2
+item.Item01        NA         NA
 item.Item02 0.4407384 -0.5027283
 item.Item03 0.8744943 -1.2465784
 item.Item04 1.5167259 -1.7742802
@@ -192,8 +186,7 @@ score.dispersion -0.1685913 -0.25082243
 +     set.seed(4)
 +     cm2 <- raschmix(resp ~ x1 + x2, data = d, k = 1:3, sc .... [TRUNCATED] 
 1 : * * *
-2 : *Loading required package: nnet
- * *
+2 : * * *
 3 : * * *
 
 > rbind(m2 = BIC(m2), cm2 = BIC(cm2))
@@ -272,7 +265,6 @@ x1    1   2
 > trellis.par.set(theme = standard.theme(color = FALSE))
 
 > print(histogram(va12_mix3))
-Loading required package: grid
 
 > trellis.par.set(theme = standard.theme(color = FALSE))
 
@@ -309,6 +301,7 @@ x2          0  0.02909329 0  0.02909329
 
 > parameters(fcm2b, which = "model")
                 Comp.1     Comp.2
+item.Item01  0.0000000  0.0000000
 item.Item02  0.4458346 -0.5087521
 item.Item03  0.8794662 -1.2541760
 item.Item04  1.5175866 -1.7793831
@@ -324,4 +317,4 @@ score2      -0.2485943 -0.1711337
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
-158.001   0.296 158.669 
+423.612   0.436 426.180 

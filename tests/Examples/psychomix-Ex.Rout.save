@@ -1,12 +1,13 @@
 
-R version 2.15.0 (2012-03-30)
-Copyright (C) 2012 The R Foundation for Statistical Computing
-ISBN 3-900051-07-0
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 3.0.2 (2013-09-25) -- "Frisbee Sailing"
+Copyright (C) 2013 The R Foundation for Statistical Computing
+Platform: i486-pc-linux-gnu (32-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -20,18 +21,11 @@ Type 'q()' to quit R.
 > source(file.path(R.home("share"), "R", "examples-header.R"))
 > options(warn = 1)
 > library('psychomix')
-Loading required package: Formula
 Loading required package: flexmix
 Loading required package: lattice
-Loading required package: modeltools
-Loading required package: stats4
-Loading required package: multcomp
-Loading required package: mvtnorm
-Loading required package: survival
-Loading required package: splines
 Loading required package: psychotools
 > 
-> assign(".oldSearch", search(), pos = 'CheckExEnv')
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
 > cleanEx()
 > nameEx("btmix")
 > ### * btmix
@@ -45,66 +39,12 @@ Loading required package: psychotools
 > 
 > ### ** Examples
 > 
-> ##########
-> ## Data ##
-> ##########
 > 
-> data("GermanParties2009", package = "psychotools")
 > 
-> ## omit single observation with education = 1
-> gp <- subset(GermanParties2009, education != "1")
-> gp$education <- factor(gp$education)
-> 
-> ##################################
-> ## Bradley-Terry mixture models ##
-> ##################################
-> 
-> set.seed(1)
-> ## fit model for k = 1 without concomitant variables
-> cm1 <- btmix(preference ~ 1, data = gp, k = 1)
-1 : * * *
-> 
-> ## fit models for k = 2, 3, 4, 5 with concomitant variables
-> cm <- btmix(preference ~ gender + education + age + crisis, data = gp,
-+     k = 2:5, nrep = 5)
-2 : *Loading required package: nnet
- * * * *
-3 : * * * * *
-4 : * * * * *
-5 : * * * * *
-> 
-> ## inspect results
-> plot(1:5, c(BIC(cm1), BIC(cm)), type = "b")
-> 
-> ## select model
-> cm4 <- getModel(cm, which = "4")
-> 
-> ## inspect mixture and effects
-> xyplot(cm4)
-> effectsplot(cm4)
-Loading required package: effects
-Loading required package: grid
-Loading required package: MASS
-Loading required package: colorspace
-
-Attaching package: 'effects'
-
-The following object(s) are masked from 'package:datasets':
-
-    Titanic
-
-> 
-> ## effect of education
-> eff4 <- allEffects(cm4)
-> effectsplot(eff4, selection = "education")
 > 
 > 
 > 
 > cleanEx()
-
-detaching 'package:effects', 'package:colorspace', 'package:MASS',
-  'package:grid', 'package:nnet'
-
 > nameEx("effectsplot")
 > ### * effectsplot
 > 
@@ -129,24 +69,17 @@ detaching 'package:effects', 'package:colorspace', 'package:MASS',
 > ## fit Bradley-Terry mixture, see ?btmix for more details
 > ## and a fully-worked example
 > set.seed(2)
-> cm4 <- btmix(preference ~ gender + education + age + crisis, data = gp, k = 4)
-4 : *Loading required package: nnet
- * *
+> cm4 <- btmix(preference ~ gender + education + age + crisis, data = gp, k = 4, nrep = 1)
+4 : *
 > 
 > ## inspect mixture and effects
+> library("lattice")
 > xyplot(cm4)
 > effectsplot(cm4)
 Loading required package: effects
 Loading required package: grid
-Loading required package: MASS
 Loading required package: colorspace
-
-Attaching package: 'effects'
-
-The following object(s) are masked from 'package:datasets':
-
-    Titanic
-
+Loading required package: nnet
 > 
 > ## effect of education
 > eff4 <- allEffects(cm4)
@@ -156,8 +89,8 @@ The following object(s) are masked from 'package:datasets':
 > 
 > cleanEx()
 
-detaching 'package:effects', 'package:colorspace', 'package:MASS',
-  'package:grid', 'package:nnet'
+detaching ‘package:nnet’, ‘package:effects’, ‘package:colorspace’,
+  ‘package:grid’
 
 > nameEx("raschmix")
 > ### * raschmix
@@ -175,7 +108,7 @@ detaching 'package:effects', 'package:colorspace', 'package:MASS',
 > ## Data ##
 > ##########
 > 
-> ## simulate response from Rost's scenario 2
+> ## simulate response from Rost's scenario 2 (with 2 latent classes)
 > set.seed(1)
 > r2 <- simRaschmix(design = "rost2")
 > 
@@ -186,172 +119,39 @@ detaching 'package:effects', 'package:colorspace', 'package:MASS',
 + )
 > d$resp <- r2
 > 
-> 
-> ####################################################
-> ## Rasch mixture model with saturated score model ##
-> ## (Rost, 1990)                                   ##
-> ####################################################
-> 
-> ## fit models for k = 1, 2, 3
-> m1 <- raschmix(r2, k = 1:3, score = "saturated")
-1 : * * *
+> ## fit model with 2 latent classes (here the number is known a priori)
+> m <- raschmix(r2, k = 2, scores = "saturated")
 2 : * * *
-3 : * * *
-> ## equivalently: m1 <- raschmix(resp ~ 1, data = d, k = 1:3, score = "saturated")
-> 
-> ## inspect results
-> m1
-
-Call:
-raschmix(formula = r2, k = 1:3, scores = "saturated")
-
-  iter converged k k0     logLik      AIC      BIC      ICL
-1    2      TRUE 1  1 -10484.227 21002.45 21094.39 21094.39
-2    9      TRUE 2  2  -8829.038 17728.08 17917.35 17987.30
-3   88      TRUE 3  3  -8813.461 17732.92 18019.54 18414.15
-> plot(m1)
-> 
-> ## select best BIC model
-> BIC(m1)
-       1        2        3 
-21094.39 17917.35 18019.54 
-> m1b <- getModel(m1, which = "BIC")
-> summary(m1b)
+> summary(m)
 
 Call:
 raschmix(formula = r2, k = 2, scores = "saturated")
 
        prior size post>0 ratio
-Comp.1   0.5  819   1285 0.637
-Comp.2   0.5  830   1301 0.638
+Comp.1   0.5  830   1301 0.638
+Comp.2   0.5  819   1284 0.638
 
 Item Parameters:
            Comp.1     Comp.2
-Item01 -2.5458596  2.6273121
-Item02 -2.1052937  2.1248273
-Item03 -1.6716555  1.3811880
-Item04 -1.0295432  0.8536212
-Item05 -0.2237000  0.3132470
-Item06  0.2735485 -0.2935008
-Item07  0.9559212 -0.8698312
-Item08  1.5512415 -1.4463233
-Item09  2.0672333 -2.0540317
-Item10  2.7281075 -2.6365087
+Item01  2.6259637 -2.5473711
+Item02  2.1238467 -2.1065253
+Item03  1.3804504 -1.6724684
+Item04  0.8532012 -1.0300711
+Item05  0.3131431 -0.2238819
+Item06 -0.2936236  0.2739328
+Item07 -0.8695518  0.9565317
+Item08 -1.4456268  1.5520442
+Item09 -2.0528887  2.0682427
+Item10 -2.6349142  2.7295666
 
-'log Lik.' -8829.038 (df=35)
+'log Lik.' -8829.039 (df=35)
 AIC: 17728.08   BIC: 17917.35 
 
 > 
-> ## compare estimated with true item parameters
-> parameters(m1b, "item") ##  9 items, item_1 = 0
-               Comp.1     Comp.2
-item.Item02 0.4405659 -0.5024848
-item.Item03 0.8742041 -1.2461241
-item.Item04 1.5163164 -1.7736910
-item.Item05 2.3221596 -2.3140651
-item.Item06 2.8194081 -2.9208130
-item.Item07 3.5017808 -3.4971433
-item.Item08 4.0971011 -4.0736354
-item.Item09 4.6130929 -4.6813439
-item.Item10 5.2739671 -5.2638208
-> worth(m1b)              ## 10 items, sum = 0
-           Comp.1     Comp.2
-Item01 -2.5458596  2.6273121
-Item02 -2.1052937  2.1248273
-Item03 -1.6716555  1.3811880
-Item04 -1.0295432  0.8536212
-Item05 -0.2237000  0.3132470
-Item06  0.2735485 -0.2935008
-Item07  0.9559212 -0.8698312
-Item08  1.5512415 -1.4463233
-Item09  2.0672333 -2.0540317
-Item10  2.7281075 -2.6365087
-> attr(r2, "difficulty")
-      [,1] [,2]
- [1,]  2.7 -2.7
- [2,]  2.1 -2.1
- [3,]  1.5 -1.5
- [4,]  0.9 -0.9
- [5,]  0.3 -0.3
- [6,] -0.3  0.3
- [7,] -0.9  0.9
- [8,] -1.5  1.5
- [9,] -2.1  2.1
-[10,] -2.7  2.7
+> ## see below for examples which do not use this a priori information
+> ## (these take a little longer to compute) 
 > 
-> ## graphical comparison
-> plot(m1b, pos = "top")
-> for(i in 1:2) lines(attr(r2, "difficulty")[,i], lty = 2, type = "b")
 > 
-> ## extract estimated raw score probabilities
-> ## (approximately equal across components and roughly uniform)
-> scoreProbs(m1b)
-          Comp.1     Comp.2
- [1,] 0.00000000 0.00000000
- [2,] 0.11103392 0.09999905
- [3,] 0.11174825 0.12597677
- [4,] 0.12044488 0.10514081
- [5,] 0.10410671 0.08994513
- [6,] 0.09107248 0.10905537
- [7,] 0.10190045 0.12248548
- [8,] 0.11672049 0.09916152
- [9,] 0.11515678 0.11892585
-[10,] 0.12781605 0.12931002
-[11,] 0.00000000 0.00000000
-> 
-> ## note: parameters() and worth() take "component" argument
-> parameters(m1b, "item",  component = 2)
-                Comp.2
-item.Item02 -0.5024848
-item.Item03 -1.2461241
-item.Item04 -1.7736910
-item.Item05 -2.3140651
-item.Item06 -2.9208130
-item.Item07 -3.4971433
-item.Item08 -4.0736354
-item.Item09 -4.6813439
-item.Item10 -5.2638208
-> parameters(m1b, "score", component = 1)
-              Comp.1
-score.2  0.006412884
-score.3  0.081356482
-score.4 -0.064419314
-score.5 -0.198180060
-score.6 -0.085839384
-score.7  0.049946409
-score.8  0.036458819
-score.9  0.140756440
-> worth(m1b, component = 2:1)
-           Comp.2     Comp.1
-Item01  2.6273121 -2.5458596
-Item02  2.1248273 -2.1052937
-Item03  1.3811880 -1.6716555
-Item04  0.8536212 -1.0295432
-Item05  0.3132470 -0.2237000
-Item06 -0.2935008  0.2735485
-Item07 -0.8698312  0.9559212
-Item08 -1.4463233  1.5512415
-Item09 -2.0540317  2.0672333
-Item10 -2.6365087  2.7281075
-> 
-> ## inspect posterior probabilities
-> histogram(m1b)
-Loading required package: grid
-> head(posterior(m1b)) ## for first observations only
-             [,1]         [,2]
-[1,] 5.084471e-03 9.949155e-01
-[2,] 8.734895e-03 9.912651e-01
-[3,] 9.999007e-01 9.925281e-05
-[4,] 9.950120e-01 4.987963e-03
-[5,] 4.076945e-07 9.999996e-01
-[6,] 9.492459e-01 5.075408e-02
-> 
-> ## compare resulting clusters with true groups
-> table(model = clusters(m1b), true = attr(r2, "cluster"))
-     true
-model   1   2
-    1  14 805
-    2 812  18
 > 
 > ## optionally: leverage mRm package for faster computation of
 > ## starting values
@@ -364,36 +164,6 @@ model   1   2
 > ##D worth(m1b) - worth(m1b_mrm)
 > ## End(Not run)
 > 
-> ################################################################
-> ##  Rasch mixture model with mean/variance score distribution ##
-> ## (Rost & von Davier, 1995)                                  ##
-> ################################################################
-> 
-> ## more parsimonious parameterization,
-> ## fit multinomial logit model for score probabilities
-> 
-> ## fit models and select best BIC
-> m2 <- raschmix(r2, k = 1:3, score = "meanvar")
-1 : * * *
-2 : * * *
-3 : * * *
-> plot(m2)
-> m2b <- getModel(m2, which = "BIC")
-> 
-> ## compare number of estimated parameters
-> dim(parameters(m2b)) 
-[1] 11  2
-> dim(parameters(m1b)) 
-[1] 17  2
-> 
-> ## graphical comparison with true parameters
-> plot(m2b, pos = "top")
-> for(i in 1:2) lines(attr(r2, "difficulty")[,i], lty = 2, type = "b")
-> 
-> ## results from non-parametric and parametric specification
-> ## essentially identical
-> max(abs(worth(m1b) - worth(m2b, component = 2:1)))
-[1] 5.367866
 > 
 > 
 > ###########################
@@ -428,9 +198,6 @@ model   1   2
 > 
 > 
 > cleanEx()
-
-detaching 'package:grid'
-
 > nameEx("simRaschmix")
 > ### * simRaschmix
 > 
@@ -580,8 +347,9 @@ detaching 'package:grid'
 > 
 > ### * <FOOTER>
 > ###
-> cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  303.318 0.752 307.399 0 0 
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  18.104 0.04 18.625 0 0 
 > grDevices::dev.off()
 null device 
           1 

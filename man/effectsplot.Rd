@@ -68,9 +68,10 @@ gp$education <- factor(gp$education)
 ## fit Bradley-Terry mixture, see ?btmix for more details
 ## and a fully-worked example
 set.seed(2)
-cm4 <- btmix(preference ~ gender + education + age + crisis, data = gp, k = 4)
+cm4 <- btmix(preference ~ gender + education + age + crisis, data = gp, k = 4, nrep = 1)
 
 ## inspect mixture and effects
+library("lattice")
 xyplot(cm4)
 effectsplot(cm4)
 

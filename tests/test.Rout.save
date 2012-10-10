@@ -1,8 +1,7 @@
 
-R version 2.14.0 (2011-10-31)
-Copyright (C) 2011 The R Foundation for Statistical Computing
-ISBN 3-900051-07-0
-Platform: i686-pc-linux-gnu (32-bit)
+R version 3.0.2 (2013-09-25) -- "Frisbee Sailing"
+Copyright (C) 2013 The R Foundation for Statistical Computing
+Platform: i486-pc-linux-gnu (32-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -17,15 +16,8 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 Type 'q()' to quit R.
 
 > library("psychomix")
-Loading required package: Formula
 Loading required package: flexmix
 Loading required package: lattice
-Loading required package: modeltools
-Loading required package: stats4
-Loading required package: multcomp
-Loading required package: mvtnorm
-Loading required package: survival
-Loading required package: splines
 Loading required package: psychotools
 > set.seed(1)
 > 
@@ -85,6 +77,7 @@ raschmix(data = re, k = 1:3, scores = "saturated", nrep = 1)
 > 
 > parameters(mr)
                   Comp.1       Comp.2
+item.Item01           NA           NA
 item.Item02 -0.502340709  0.440685829
 item.Item03 -1.245893928  0.874503443
 item.Item04 -1.773341948  1.516743267
@@ -94,6 +87,7 @@ item.Item07 -3.496550253  3.502710513
 item.Item08 -4.072859285  4.098094096
 item.Item09 -4.680361120  4.614145799
 item.Item10 -5.262645393  5.275196545
+score.1               NA           NA
 score.2      0.230503799  0.006782353
 score.3      0.049722200  0.081735451
 score.4     -0.106395805 -0.064024406
@@ -102,6 +96,11 @@ score.6      0.202391017 -0.085467395
 score.7     -0.008855019  0.050350581
 score.8      0.172874822  0.036869530
 score.9      0.256702935  0.141051551
+> 
+> ## mrrefit <- refit(mr)
+> ## summary(mrrefit)
+> 
+> ## -------------------------------------------------
 > 
 > ## ### DIFSim
 > ## data("DIFSim", package = "psychotree")
@@ -159,3 +158,6 @@ score.9      0.256702935  0.141051551
 > ## ## plot(m.nident, index = TRUE, component = 1:2)
 > 
 > 
+> proc.time()
+   user  system elapsed 
+ 18.588   0.068  18.705 

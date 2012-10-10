@@ -1,4 +1,4 @@
-import("graphics", "stats", "flexmix", "psychotools")
+import("graphics", "methods", "stats", "flexmix", "psychotools", "Formula")
 importFrom("modeltools", "parameters")
 importFrom("lattice", "histogram")
 importFrom("lattice", "xyplot")
@@ -35,6 +35,7 @@ exportMethods("plot")
 exportMethods("show")
 exportMethods("summary")
 exportMethods("worth")
+exportMethods("refit")
 
 ## S3 methods for btmix
 S3method("histogram", "btmix")
