@@ -10,6 +10,26 @@ Loading required package: psychotools
 
 > cache <- FALSE
 
+> mygrays <- gray.colors(2)
+
+> par(mar = c(0.1, 6, 3, 0.1), las = 1)
+
+> plot(0, 0, xlim = c(-0.2, 3), ylim = c(0.2, 1.8), 
++     type = "n", axes = FALSE, xlab = "", ylab = "")
+
+> points(rep(c(0 + 0:3/5.5, 1 + 0:3/5.5), 2), rep(c(1.5, 
++     0.5), each = 8), pch = 21, bg = mygrays[c(rep(1, 4), rep(2, 
++     4), 1, 2, 1, 2, 2,  .... [TRUNCATED] 
+
+> axis(2, at = c(1.5, 0.5), c("Coinciding", "Not coinciding"), 
++     lwd = 0, pos = -0.2, line = 0)
+
+> axis(3, at = c(0, 1), c("School type I\n(low ability)", 
++     "School type II\n(high ability)"), lwd = 0, hadj = 0)
+
+> legend(2, 1.7, c("standard", "specialized"), title = "Course type\n(source of DIF)", 
++     pch = 21, pt.bg = mygrays, bty = "n", title.adj = 0)
+
 > generateDesign <- function(nobs = 500, m = 20, weights = NULL, 
 +     ab = 0, ab.dist = c("fix", "normal"), dif = 2, beta = 1.9, 
 +     index = 5, c .... [TRUNCATED] 
@@ -32,7 +52,7 @@ Loading required package: psychotools
 
 > par(mar = c(2, 4, 2, 2) + 0.1)
 
-> des <- generateDesign(ab = 0, dif = 2)
+> des <- generateDesign(ab = 0, dif = 2, ab.dist = "normal")
 
 > set.seed(1)
 
@@ -59,7 +79,7 @@ Loading required package: psychotools
 
 > par(mar = c(2, 4, 2, 2) + 0.1)
 
-> des <- generateDesign(ab = 1, dif = 0)
+> des <- generateDesign(ab = 1, dif = 0, ab.dist = "normal")
 
 > set.seed(1)
 
@@ -84,7 +104,8 @@ Loading required package: psychotools
 
 > par(mar = c(2, 4, 2, 2) + 0.1)
 
-> des <- generateDesign(ab = 1, dif = 2, coincide = FALSE)
+> des <- generateDesign(ab = 1, dif = 2, coincide = FALSE, 
++     ab.dist = "normal")
 
 > set.seed(1)
 
@@ -100,7 +121,8 @@ Loading required package: psychotools
 > stacked_bars(rs, cl, max = 20, ylab = "Score frequencies", 
 +     xlab = "")
 
-> des <- generateDesign(ab = 1, dif = 2, coincide = TRUE)
+> des <- generateDesign(ab = 1, dif = 2, coincide = TRUE, 
++     ab.dist = "normal")
 
 > set.seed(1)
 
@@ -156,46 +178,27 @@ Loading required package: psychotools
 
 > par(mar = c(5, 4, 4, 2) + 0.1)
 
-> par(mfrow = c(1, 3))
+> par(mfrow = c(1, 2))
 
-> layout(matrix(c(rep(1, 5), rep(2, 4), rep(3, 5)), 
-+     nrow = 1, byrow = TRUE))
+> layout(matrix(c(rep(1, 4), rep(2, 4)), nrow = 1, byrow = TRUE))
 
 > par(mar = c(5, 4, 4, 0.5) + 0.1)
 
 > plot(prop23 ~ delta, data = scoresim, subset = theta == 
-+     0.4 & scores == "saturated" & (scenario == 4 | delta == 0), 
++     2.4 & scores == "saturated" & (scenario == 4 | delta == 0), 
 +     main = expression( .... [TRUNCATED] 
 
 > lines(prop23 ~ delta, data = scoresim, subset = theta == 
-+     0.4 & scores == "meanvar" & (scenario == 4 | delta == 0), 
++     2.4 & scores == "meanvar" & (scenario == 4 | delta == 0), 
 +     type = "b", col = m .... [TRUNCATED] 
 
 > lines(prop23 ~ delta, data = scoresim, subset = theta == 
-+     0.4 & scores == "restricted" & (scenario == 4 | delta == 
++     2.4 & scores == "restricted" & (scenario == 4 | delta == 
 +     0), type = "b", col  .... [TRUNCATED] 
 
 > legend("topleft", legend = c("saturated", "mean-variance", 
 +     "restricted"), col = myhcl[3:1], lty = c(3, 1, 2), pch = c(3, 
 +     1, 6), bty =  .... [TRUNCATED] 
-
-> par(mar = c(5, 0.5, 4, 0.5) + 0.1)
-
-> plot(prop23 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "saturated" & (scenario == 4 | delta == 0), 
-+     main = expression(pa .... [TRUNCATED] 
-
-> box()
-
-> axis(1)
-
-> lines(prop23 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "meanvar" & (scenario == 4 | delta == 0), type = "b", 
-+     col = myh .... [TRUNCATED] 
-
-> lines(prop23 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "restricted" & (scenario == 4 | delta == 0), 
-+     type = "b", col =  .... [TRUNCATED] 
 
 > par(mar = c(5, 0.5, 4, 4) + 0.1)
 
@@ -241,46 +244,23 @@ Loading required package: psychotools
 
 > par(mar = c(5, 4, 4, 2) + 0.1)
 
-> par(mfrow = c(1, 3))
+> par(mfrow = c(1, 2))
 
-> layout(matrix(c(rep(1, 5), rep(2, 4), rep(3, 5)), 
-+     nrow = 1, byrow = TRUE))
+> layout(matrix(c(rep(1, 4), rep(2, 4)), nrow = 1, byrow = TRUE))
 
 > par(mar = c(5, 4, 4, 0.5) + 0.1)
 
 > plot(prop23 ~ delta, data = scoresim, subset = theta == 
-+     0.4 & scores == "saturated" & (scenario == 5 | delta == 0), 
-+     main = expression( .... [TRUNCATED] 
++     "2.4" & scores == "saturated" & (scenario == 5 | delta == 
++     0), main = expressio .... [TRUNCATED] 
 
 > lines(prop23 ~ delta, data = scoresim, subset = theta == 
-+     0.4 & scores == "meanvar" & (scenario == 5 | delta == 0), 
-+     type = "b", col = m .... [TRUNCATED] 
++     "2.4" & scores == "meanvar" & (scenario == 5 | delta == 0), 
++     type = "b", col = .... [TRUNCATED] 
 
 > lines(prop23 ~ delta, data = scoresim, subset = theta == 
-+     0.4 & scores == "restricted" & (scenario == 5 | delta == 
-+     0), type = "b", col  .... [TRUNCATED] 
-
-> legend("topleft", legend = c("saturated", "mean-variance", 
-+     "restricted"), col = myhcl[3:1], lty = c(3, 1, 2), pch = c(3, 
-+     1, 6), bty =  .... [TRUNCATED] 
-
-> par(mar = c(5, 0.5, 4, 0.5) + 0.1)
-
-> plot(prop23 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "saturated" & (scenario == 5 | delta == 0), 
-+     main = expression(pa .... [TRUNCATED] 
-
-> box()
-
-> axis(1)
-
-> lines(prop23 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "meanvar" & (scenario == 5 | delta == 0), type = "b", 
-+     col = myh .... [TRUNCATED] 
-
-> lines(prop23 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "restricted" & (scenario == 5 | delta == 0), 
-+     type = "b", col =  .... [TRUNCATED] 
++     "2.4" & scores == "restricted" & (scenario == 5 | delta == 
++     0), type = "b", co .... [TRUNCATED] 
 
 > par(mar = c(5, 0.5, 4, 4) + 0.1)
 
@@ -300,14 +280,17 @@ Loading required package: psychotools
 +     3.6 & scores == "restricted" & (scenario == 5 | delta == 
 +     0), type = "b", col  .... [TRUNCATED] 
 
+> legend("bottomright", legend = c("saturated", "mean-variance", 
++     "restricted"), col = myhcl[3:1], lty = c(3, 1, 2), pch = c(3, 
++     1, 6), bt .... [TRUNCATED] 
+
 > par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1, 1))
 
-> par(mfrow = c(1, 3))
+> par(mar = c(5, 4, 4, 2) + 0.1)
 
-> layout(matrix(c(rep(1, 5), rep(2, 4), rep(3, 5)), 
-+     nrow = 1, byrow = TRUE))
+> layout(matrix(rep(1:4, each = 4), nrow = 2, byrow = TRUE))
 
-> par(mar = c(5, 4, 4, 0.5) + 0.1)
+> par(mar = c(1.5, 4, 4, 0.5) + 0.1)
 
 > plot(rand2 ~ delta, data = scoresim, subset = theta == 
 +     0.4 & scores == "saturated" & scenario == 4 & delta > 0, 
@@ -325,24 +308,7 @@ Loading required package: psychotools
 +     "restricted"), col = myhcl[3:1], lty = c(3, 1, 2), pch = c(3, 
 +     1, 6), bty =  .... [TRUNCATED] 
 
-> par(mar = c(5, 0.5, 4, 0.5) + 0.1)
-
-> plot(rand2 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "saturated" & scenario == 4 & delta > 0, main = expression(paste("Impact ..." ... [TRUNCATED] 
-
-> box()
-
-> axis(1)
-
-> lines(rand2 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "meanvar" & scenario == 4 & delta > 0, type = "b", 
-+     col = myhcl[2 .... [TRUNCATED] 
-
-> lines(rand2 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "restricted" & scenario == 4 & delta > 0, type = "b", 
-+     col = myhc .... [TRUNCATED] 
-
-> par(mar = c(5, 0.5, 4, 4) + 0.1)
+> par(mar = c(1.5, 0.5, 4, 4) + 0.1)
 
 > plot(rand2 ~ delta, data = scoresim, subset = theta == 
 +     3.6 & scores == "saturated" & scenario == 4 & delta > 0, 
@@ -360,18 +326,13 @@ Loading required package: psychotools
 +     3.6 & scores == "restricted" & scenario == 4 & delta > 0, 
 +     type = "b", col = my .... [TRUNCATED] 
 
-> par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1, 1))
+> text(4.4, 0.65, "Scenario 4", pos = 4, srt = 90, xpd = TRUE)
 
-> par(mfrow = c(1, 3))
-
-> layout(matrix(c(rep(1, 5), rep(2, 4), rep(3, 5)), 
-+     nrow = 1, byrow = TRUE))
-
-> par(mar = c(5, 4, 4, 0.5) + 0.1)
+> par(mar = c(5, 4, 1, 0.5) + 0.1)
 
 > plot(rand2 ~ delta, data = scoresim, subset = theta == 
 +     0.4 & scores == "saturated" & scenario == 5 & delta > 0, 
-+     main = expression(past .... [TRUNCATED] 
++     ylim = c(0.5, 1), type .... [TRUNCATED] 
 
 > lines(rand2 ~ delta, data = scoresim, subset = theta == 
 +     0.4 & scores == "meanvar" & scenario == 5 & delta > 0, type = "b", 
@@ -381,32 +342,11 @@ Loading required package: psychotools
 +     0.4 & scores == "restricted" & scenario == 5 & delta > 0, 
 +     type = "b", col = my .... [TRUNCATED] 
 
-> legend("topleft", legend = c("saturated", "mean-variance", 
-+     "restricted"), col = myhcl[3:1], lty = c(3, 1, 2), pch = c(3, 
-+     1, 6), bty =  .... [TRUNCATED] 
-
-> par(mar = c(5, 0.5, 4, 0.5) + 0.1)
-
-> plot(rand2 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "saturated" & scenario == 5 & delta > 0, main = expression(paste("Impact ..." ... [TRUNCATED] 
-
-> box()
-
-> axis(1)
-
-> lines(rand2 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "meanvar" & scenario == 5 & delta > 0, type = "b", 
-+     col = myhcl[2 .... [TRUNCATED] 
-
-> lines(rand2 ~ delta, data = scoresim, subset = theta == 
-+     2 & scores == "restricted" & scenario == 5 & delta > 0, type = "b", 
-+     col = myhc .... [TRUNCATED] 
-
-> par(mar = c(5, 0.5, 4, 4) + 0.1)
+> par(mar = c(5, 0.5, 1, 4) + 0.1)
 
 > plot(rand2 ~ delta, data = scoresim, subset = theta == 
 +     3.6 & scores == "saturated" & scenario == 5 & delta > 0, 
-+     main = expression(past .... [TRUNCATED] 
++     ylim = c(0.5, 1), type .... [TRUNCATED] 
 
 > box()
 
@@ -419,6 +359,8 @@ Loading required package: psychotools
 > lines(rand2 ~ delta, data = scoresim, subset = theta == 
 +     3.6 & scores == "restricted" & scenario == 5 & delta > 0, 
 +     type = "b", col = my .... [TRUNCATED] 
+
+> text(4.4, 0.65, "Scenario 5", pos = 4, srt = 90, xpd = TRUE)
 
 > par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1, 1))
 
@@ -442,9 +384,13 @@ Loading required package: psychotools
 3 : * * *
 4 : * * *
 
-> mvRbic <- round(BIC(mvR), digits = 1)
-
 > mvR3 <- getModel(mvR, which = "BIC")
+
+> clsizes <- table(clusters(mvR3))
+
+> tabK <- data.frame(model = rep("restricted", 4), k = sapply(mvR@models, 
++     function(x) x@k), df = sapply(mvR@models, function(x) x@df), 
++     l .... [TRUNCATED] 
 
 > if (cache & file.exists("va12_m3.rda")) {
 +     load("va12_m3.rda")
@@ -457,93 +403,36 @@ Loading required package: psychotools
 > library("lmtest")
 Loading required package: zoo
 
-Attaching package: 'zoo'
+Attaching package: ‘zoo’
 
-The following objects are masked from 'package:base':
+The following objects are masked from ‘package:base’:
 
     as.Date, as.Date.numeric
 
 
-Attaching package: 'lmtest'
+Attaching package: ‘lmtest’
 
-The following object is masked _by_ '.GlobalEnv':
+The following object is masked _by_ ‘.GlobalEnv’:
 
     ip
 
 
-> lrtest(sat3, mv3, mvR3)
-Likelihood ratio test
-
-Model 1: sat3
-Model 2: mv3
-Model 3: mvR3
-  #Df  LogLik  Df   Chisq Pr(>Chisq)  
-1  65 -1795.2                         
-2  41 -1812.2 -24 33.9187    0.08612 .
-3  37 -1816.9  -4  9.4519    0.05075 .
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-> lrtest(sat3, satR3, mvR3)
-Likelihood ratio test
-
-Model 1: sat3
-Model 2: satR3
-Model 3: mvR3
-  #Df  LogLik  Df   Chisq Pr(>Chisq)   
-1  65 -1795.2                          
-2  45 -1814.1 -20 37.7143   0.009595 **
-3  37 -1816.9  -8  5.6563   0.685672   
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-> clsizes <- table(clusters(mvR3))
-
-> par(mar = rep(0, 4))
-
-> node <- function(x, y, lab, eps = 0.11, col = mygrays[2]) {
-+     polygon(x + c(-1, -1, 1, 1, -1) * eps, y + c(-1, 1, 1, -1, 
-+         -1) * eps, c .... [TRUNCATED] 
-
-> edge <- function(x1, y1, x2, y2, lab, eps = 0.13, 
-+     length = 0.1, ...) {
-+     if (x1 == x2) {
-+         arrows(x1, y1 + eps, x2, y2 - eps, len .... [TRUNCATED] 
-
-> plot(0, 0, xlim = c(0, 1), ylim = c(0, 1), type = "n", 
-+     axes = FALSE, xlab = "", ylab = "")
-
-> node(0.2, 0.2, sprintf("saturated\n(BIC: %s)", format(round(BIC(sat3), 
-+     digits = 1), nsmall = 1)))
-
-> node(0.2, 0.8, sprintf("saturated\nrestricted\n(BIC: %s)", 
-+     format(round(BIC(satR3), digits = 1), nsmall = 1)))
-
-> node(0.8, 0.2, sprintf("mean-variance\n(BIC: %s)", 
-+     format(round(BIC(mv3), digits = 1), nsmall = 1)))
-
-> node(0.8, 0.8, sprintf("mean-variance\nrestricted\n(BIC: %s)", 
-+     format(round(BIC(mvR3), digits = 1), nsmall = 1)))
-
-> edge(0.2, 0.2, 0.2, 0.8, format(round(lrtest(sat3, 
-+     satR3)[2, 5], digits = 3), nsmall = 3))
-
-> edge(0.2, 0.8, 0.8, 0.8, format(round(lrtest(satR3, 
-+     mvR3)[2, 5], digits = 3), nsmall = 3))
-
-> edge(0.2, 0.2, 0.8, 0.2, format(round(lrtest(sat3, 
-+     mv3)[2, 5], digits = 3), nsmall = 3))
-
-> edge(0.8, 0.2, 0.8, 0.8, format(round(lrtest(mv3, 
-+     mvR3)[2, 5], digits = 3), nsmall = 3))
-
-> par(mar = c(5, 4, 4, 2) + 0.1)
+> tabS <- data.frame(model = c("saturated", "restricted (saturated)", 
++     "mean-variance", "restricted (mean-variance)"), k = sapply(list(sat3, 
++  .... [TRUNCATED] 
 
 > trellis.par.set(theme = standard.theme(color = FALSE))
 
 > xyplot(mvR3)
 
+> session <- sessionInfo()
+
+> Rversion <- paste(session$R.version$major, session$R.version$minor, 
++     sep = ".")
+
+> psyversion <- session$otherPkgs$psychomix$Version
+
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 60.068   0.172  60.334 
+ 72.804   0.128  72.959 

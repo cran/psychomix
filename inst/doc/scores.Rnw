@@ -1,6 +1,9 @@
 % -*- mode: noweb; ess-noweb-default-code-mode: R-mode; -*-
-\documentclass[nojss]{jss}
+\documentclass[nojss,noheadings]{jss}
 \usepackage{amsmath,amssymb,amsfonts,thumbpdf}
+
+%% correct pdf version for EPM
+%\pdfminorversion=4
 
 %% additional commands
 \newcommand{\squote}[1]{`{#1}'}
@@ -13,6 +16,7 @@
 \newcommand{\readme}[1]{\emph{\marginpar{README} (#1)}}
 \definecolor{updatecolor}{rgb}{0,0.4,0}
 \newcommand{\update}[1]{\marginpar{UPDATE}{\color{updatecolor}#1}}
+\newcommand{\revision}[1]{{\color{updatecolor}#1}}
 
 \author{Hannah Frick\\Universit\"at Innsbruck \And
 	Carolin Strobl\\Universit\"at Z\"urich \And
@@ -24,12 +28,11 @@
 \Plaintitle{Rasch Mixture Models for DIF Detection: A Comparison of Old and New Score Specifications}
 \Shorttitle{Rasch Mixture Models for DIF Detection}
 
-
-
-\Keywords{mixed Rasch model, Rasch mixture model, DIF detection, score distribution}
-\Plainkeywords{mixed Rasch model, Rasch mixture model, DIF detection, score distribution}
-
 \Abstract{
+  This vignette is a (slightly) modified version of 
+  \cite{psychomix:Frick+Strobl+Zeileis:2014}, published in 
+  \emph{Educational and Psychological Measurement}.
+
   Rasch mixture models can be a useful tool when checking the assumption of 
   measurement invariance for a single Rasch model. They provide advantages 
   compared to manifest DIF tests when the DIF groups are only weakly correlated 
@@ -40,14 +43,16 @@
   influence the latent classes of a Rasch mixture model. If the aim is only DIF
   detection, it is not of interest to uncover such ability differences as one is
   only interested in a latent group structure regarding the item difficulties. 
-  To avoid any confounding effect of ability differences (or impact), a score 
-  distribution for the Rasch mixture model is introduced here which is 
-  restricted to be equal across latent classes. This causes the estimation of 
-  the Rasch mixture model to be independent of the ability distribution and thus
-  restricts the mixture to be sensitive to latent structure in the item 
-  difficulties only. Its usefulness is demonstrated in a simulation study and 
-  its application is illustrated in a study of verbal aggression.
+  To avoid any confounding effect of ability differences (or impact), a new 
+  score distribution for the Rasch mixture model is introduced here. It ensures
+  the estimation of the Rasch mixture model to be independent of the ability 
+  distribution and thus restricts the mixture to be sensitive to latent 
+  structure in the item difficulties only. Its usefulness is demonstrated in a 
+  simulation study and its application is illustrated in a study of verbal 
+  aggression.
 }
+
+\Keywords{mixed Rasch model, Rasch mixture model, DIF detection, score distribution}
 
 \Address{
   Hannah Frick, Achim Zeileis\\
@@ -71,8 +76,8 @@
 %% Sweave/vignette information and metadata
 %% need no \usepackage{Sweave}
 \SweaveOpts{engine = R, eps = FALSE, keep.source = TRUE}
-%\VignetteIndexEntry{On the Specification of the Score Distribution in Rasch Mixture Models}
-%\VignetteDepends{graphics, stats, methods, Formula, flexmix, psychotools, psychomix, lmtest}
+%\VignetteIndexEntry{Rasch Mixture Models for DIF Detection: A Comparison of Old and New Score Specifications}
+%\VignetteDepends{graphics, stats, methods, psychomix, lmtest}
 %\VignetteKeywords{mixed Rasch model, Rasch mixture model, DIF detection, score distribution}
 %\VignettePackage{psychomix}
 
@@ -84,9 +89,26 @@ cache <- FALSE
 @
 
 
-\begin{document}
+%% publication info and copyright notice
+\usepackage{fancyhdr}
+\setlength{\headheight}{15pt}
+\renewcommand{\headrulewidth}{0pt}
+\pagestyle{fancy}
+\thispagestyle{plain}
+\fancyhf{}
+\fancyhead[RO,LE]{\thepage}
+\fancyhead[CO]{\textit{\normalsize Hannah Frick, Carolin Strobl, Achim Zeileis}}
+\fancyhead[CE]{\textit{\normalsize Rasch Mixture Models for DIF Detection}}
+\fancyfoot[LO,LE]{\small Copyright {\copyright} 2014 The Author(s)}
+\fancypagestyle{plain}{
+\fancyhf{}
+\fancyfoot[LO,LE]{\small This is a preprint of an article accepted for publication in \textit{Educational and Psychological Measurement}.
+  \doi{10.1177/0013164414536183} \\
+  Copyright~{\copyright} 2014 The Author(s). \url{http://epm.sagepub.com/}.
+  }
+}
 
-%\vspace*{-0.35cm}
+\begin{document}
 
 \section{Introduction} \label{sec:intro}
 
@@ -94,21 +116,37 @@ Based on the Rasch model \citep{psychomix:Rasch:1960},
 \cite{psychomix:Rost:1990} introduced what he called the \dquote{mixed Rasch 
   model}, a combination of a latent class approach and a latent trait approach 
 to model qualitative and quantitative ability differences. As suggested by 
-\cite{psychomix:Rost:1990}, it can also be used to examine the fit of Rasch 
+\cite{psychomix:Rost:1990}, it can also be used to examine the fit of the Rasch 
 model and check for violations of measurement invariance such as differential 
-item functioning (DIF). It has since been extended by 
-\cite{psychomix:Rost+VonDavier:1995} to different score distributions and by 
-\cite{psychomix:Rost:1991} and \cite{psychomix:vonDavier+Rost:1995} to 
-polytomous responses. The so-called \dquote{mixed ordinal Rasch model} is a 
-mixture of partial credit models \citep[PCM,][]{psychomix:Masters:1982} and 
-includes a mixture of rating scale models \citep[RSM,][]{psychomix:Andrich:1978}
-as a special case.
+item functioning (DIF). Since the model assumes latent classes for which 
+separate Rasch models hold, it can be employed to validate a psychological test 
+or questionnaire: if a model with two or more latent classes fits better than a 
+model with one latent class, measurement invariance is violated and a single 
+Rasch model is not suitable because several latent classes are present in the 
+data which require separate Rasch models with separate sets of item 
+difficulties. These classes are latent in the sense that they are not determined
+by covariates.
 
-The original dichotomous model -- here called Rasch mixture model to avoid 
-confusion with mixed (effects) models and instead highlight its relation to 
-mixture models -- as well as its polytomous version have been applied in a 
-variety of fields. \cite{psychomix:Zickar+Gibby+Robie:2004} use a mixture PCM to
-detect faking in personality questionnaires, while 
+As the model assesses a questionnaire -- or instrument as it will be referred to
+in the following -- as a whole, it works similar to a global test like the 
+likelihood ratio (LR) test 
+\citep{psychomix:Andersen:1972, psychomix:Gustafsson:1980}, not an itemwise test
+like the Mantel-Haenszel test \citep{psychomix:Holland+Thayer:1988}. Hence, it
+is the set of item parameters for all items, which is tested for differences 
+between groups rather than each item parameter being tested separately.
+
+The mixed Rasch model -- here called Rasch mixture  model to avoid confusion
+with mixed (effects) models and instead highlight its relation to mixture 
+models -- has since been extended by \cite{psychomix:Rost+VonDavier:1995} to 
+different score distributions and by \cite{psychomix:Rost:1991} and 
+\cite{psychomix:vonDavier+Rost:1995} to polytomous responses. The so-called 
+\dquote{mixed ordinal Rasch model} is a mixture of partial credit 
+models~\citep[PCM,][]{psychomix:Masters:1982} and includes a mixture of rating
+scale models~\citep[RSM,][]{psychomix:Andrich:1978} as a special case.
+
+The original dichotomous model as well as its polytomous version have been 
+applied in a variety of fields. \cite{psychomix:Zickar+Gibby+Robie:2004} use a 
+mixture PCM to detect faking in personality questionnaires, while 
 \cite{psychomix:Hong+Min:2007} identify three types/classes of depressed 
 behavior by applying a mixture RSM to a self-rating depression scale. Another 
 vast field of application are tests in educational measurement. 
@@ -119,8 +157,11 @@ mixture model to identify latent groups in a vocabulary test.
 \cite{psychomix:Cohen+Bolt:2005} use a Rasch mixture model to detect DIF in a 
 mathematics placement test.
 
-Rasch mixture models constitute a legitimate alternative to manifest DIF tests,
-as \cite{psychomix:Maij-deMeij+Kelderman+vanderFlier:2010} show that mixture
+Rasch mixture models constitute a legitimate alternative to DIF tests for 
+manifest variables such as the LR test or the recently proposed Rasch trees 
+\citep{psychomix:Strobl+Kopf+Zeileis:2013}. These methods are usually used to 
+test DIF based on observed covariates, whereas 
+\cite{psychomix:Maij-deMeij+Kelderman+vanderFlier:2010} show that mixture
 models are more suitable to detect DIF if the \dquote{true source of bias} is 
 a latent grouping variable. The simulation study by 
 \cite{psychomix:Preinerstorfer+Formann:2011} suggests that parameter recovery
@@ -141,37 +182,44 @@ likelihood (CML) approach, checked for model violations and problematic items
 are possibly excluded or modified. Second, the final set of items is used to 
 estimate person abilities. The main advantage of the CML approach is that, for a
 single Rasch model, the estimation and check of item difficulties are 
-(conditionally) independent of the abilities and their distribution. However, 
-in a Rasch mixture model, the estimation of the item difficulties is not 
-independent of this second aspect, even when employing the CML approach. 
-\cite{psychomix:DeMars+Lau:2011} find that a difference in mean ability between 
-DIF groups affects the estimation of the DIF effect sizes. Similarly, inflated 
-type I error rates also occur in other DIF detection methods if impact is 
-present, e.g., the Mantel-Haenszel and logistic regression precedures 
-\citep{psychomix:Li+Brooks+Johanson:2012, psychomix:DeMars:2010}.
+(conditionally) independent of the abilities and their distribution.
+Other global assessment methods like the LR test and the Rasch trees are also 
+based on the CML approach to achieve such independence. However, in a Rasch
+mixture model, the estimation of the item difficulties is not independent of 
+the ability distribution, even when employing the CML approach. 
+\cite{psychomix:DeMars+Lau:2011} find that a difference in mean ability between
+DIF groups affects the estimation of the DIF effect sizes. Similarly, other DIF
+detection methods are also affected by impact, e.g., inflated type I error rates
+occur in the Mantel-Haenszel and logistic regression procedures if impact is
+present \citep{psychomix:Li+Brooks+Johanson:2012, psychomix:DeMars:2010}.
 
-Here, a simulations study is conducted to illustrate how Rasch mixture models 
-react to impact, either alone or in combination with DIF. When using a Rasch 
-mixture model for DIF detection, an influence of sole impact on the mixture is
-undesirable as the goal is to uncover DIF groups based on item difficulties, not
-impact groups based on abilities.
+When using a Rasch mixture model for DIF detection, an influence of impact alone
+on the mixture is undesirable as the goal is to uncover DIF groups based on 
+item difficulties, not impact groups based on abilities. To avoid such 
+confounding effects of impact, we propose a new version of the Rasch mixture 
+model specifically designed to detect DIF, which allows for the transfer of the
+crucial property of CML from a single Rasch model to the mixture: estimation and
+testing of item difficulties is independent of the abilities and their 
+distribution.
 
-To avoid such confounding effects of impact, we propose a Rasch mixture model
-specifically designed to detect DIF -- regardless of whether or not impact is 
-present and in which form.
+A simulation study is conducted to illustrate how previously suggested versions
+and this new version of the Rasch mixture model react to impact, either alone or
+in combination with DIF, and how this affects the suitability of the Rasch
+mixture model as a DIF detection method.
 
 In the following, we briefly discuss the Rasch model and Rasch mixture models to
 explain why the latter are sensitive to the specification of the score 
 distribution despite employing a conditional maximum likelihood approach for 
-estimation. This Section~\ref{sec:theory} is concluded with our suggested score 
-distribution. We illustrate and discuss the behavior of Rasch mixture models 
-with different options for the score distribution in a Monte Carlo study in 
-Section~\ref{sec:simulation}. The suggested approach for DIF detection via Rasch
-mixture models is illustrated through an empirical application to a study on 
-verbally aggressive behavior in Section~\ref{sec:application}. Concluding 
+estimation. This Section~\ref{sec:theory} is concluded with our suggested new 
+score distribution. We illustrate and discuss the behavior of Rasch mixture 
+models with different options for the score distribution in a Monte Carlo study 
+in Section~\ref{sec:simulation}. The suggested approach for DIF detection via 
+Rasch mixture models is illustrated through an empirical application to a study 
+on verbally aggressive behavior in Section~\ref{sec:application}. Concluding 
 remarks are provided in Section~\ref{sec:conclusion}.
 
-\pagebreak
+
+%\pagebreak
 
 \section{Theory} \label{sec:theory}
 
@@ -203,7 +251,7 @@ estimation is employed here. This exploits that the number of correctly scored
 items, the so-called raw score $R_i = \sum_{j = 1}^{m}{Y_{ij}}$, is a sufficient 
 statistic for the ability $\theta_i$ \citep{psychomix:Molenaar:1995a}.
 Therefore, the answer probability from Equation~\ref{eq:RM:base} can be split
-into two factors where the first factor, is conditionally independent of 
+into two factors where the first factor is conditionally independent of 
 $\theta_i$:
 %
 \begin{eqnarray*}
@@ -212,7 +260,7 @@ $\theta_i$:
     & = & P(Y_i = y_i | r_i, \theta_i, \beta) ~ P(R_i = r_i | \theta_i, \beta) \\
   \label{eq:RM:hg}
     & = & \underbrace{P(Y_i = y_i | r_i, \beta)}_{h(y_i | r_i, \beta)} ~
-          \underbrace{P(R_i = r_i | \theta_i, \beta)}_{g(r_i | \theta_i, \beta)}
+          \underbrace{P(R_i = r_i | \theta_i, \beta)}_{g(r_i | \theta_i, \beta)}.
 \end{eqnarray*} 
 %
 Due to this separation, consistent estimates of the item parameters $\beta$ can
@@ -220,7 +268,7 @@ be obtained by maximizing only the conditional part of the likelihood
 $h(\cdot)$:
 % 
 \begin{equation}
-  h(y_i| r, \beta) ~=~ \frac
+  h(y_i| r_i, \beta) ~=~ \frac
     {\exp\{- \sum_{j = 1}^{m}{y_{ij} \beta_j}\}}
     {\gamma_{r_i}(\beta)}, \label{eq:RM:h}
 \end{equation}
@@ -247,13 +295,13 @@ estimation is used throughout for estimating the Rasch model, i.e., the
 conditional likelihood $h(\cdot)$ is always specified by Equation~\ref{eq:RM:h}.
 
 
-\pagebreak
+%\pagebreak
 
 \subsection{Rasch mixture models}\label{sec:RMM}
 
 Mixture models are essentially a weighted sum over several components,
-i.e., here over several Rasch models.Using the Rasch model density function from
-Equation~\ref{eq:RM:f} the likelihood $L(\cdot)$ of a Rasch mixture model 
+i.e., here over several Rasch models. Using the Rasch model density function 
+from Equation~\ref{eq:RM:f}, the likelihood $L(\cdot)$ of a Rasch mixture model 
 with $K$~components for data from $n$~respondents is given by
 %
 \begin{eqnarray}
@@ -324,12 +372,14 @@ needs to be chosen based on the data. As $K$ is not a model parameter --
 regularity conditions for the likelihood ratio test are not fulfilled
 \citep[][Chapter~6.4]{psychomix:McLachlan+Peel:2000} -- it is often chosen via 
 some information criterion that balances goodness of fit
-(via the likelihood) with a penalty for the number of model parameters. In the 
-following, the BIC 
+(via the likelihood) with a penalty for the number of model parameters. 
+Since the various information criteria differ in their penalty term, the
+decision which model is considered ``best'' may depend on the information 
+criterion chosen. In the following, the BIC 
 \citep[Bayesian information criterion,][]{psychomix:Schwarz:1978} is used, which
 \cite{psychomix:Li+Cohen+Kim:2009} found to be a suitable model selection method
-for dichotomous mixture item response theory models.
-
+for dichotomous mixture item response theory models. Note that this is not a 
+formal significance test because one does not control a type I error rate.
 
 \subsection{Score distribution} \label{sec:scores}
 
@@ -378,7 +428,7 @@ $(m-2)$-dimensional with
   \label{eq:scores:saturated}
   z_{r} = (0, \ldots, 0, 1, 0, \ldots, 0)^\top
 \end{equation*}
-% 
+%
 and the 1 at position $r - 1$. Consequently, if $r = 1$, $z_{r}$ is a vector
 of zeros. For the mean-variance specification, the regressor vector is
 $2$-dimensional and given by
@@ -390,35 +440,57 @@ $2$-dimensional and given by
 
 \subsubsection{Restricted specification}
 
-To obtain independence of the item parameter estimates from the specification
-of the score distribution in the Rasch mixture model from 
-Equation~\ref{eq:RMM:hg}, we propose a novel specification of the score 
-distribution in the Rasch mixture model. We suggest restricting the score 
-parameters $\delta^{(k)}$ to be equal across the latent classes: 
+In the following we suggest a new specification of the score distribution in 
+the Rasch mixture model, which aims at obtaining independence of the item 
+parameter estimates from the specification of the score distribution 
+and therefore enabling the Rasch mixture model to distinguish between DIF and 
+impact. Other global DIF detection methods like the LR test and Rasch trees are
+able to make this distinction 
+\citep{psychomix:Ankenmann+Witt+Dunbar:1999, psychomix:Strobl+Kopf+Zeileis:2013}
+because they are based only on the conditional part of the likelihood
+(Equation~\ref{eq:RM:h}). Analogously, we suggest a mixture of only this 
+conditional part rather than the full likelihood (Equation~\ref{eq:RM:f}) of the
+Rasch model so that the mixture model will only be influenced by differences in
+the item parameters.
+
+Mixing only the conditional likelihood $h(\cdot)$ means that the sum over the 
+$K$ latent classes in the likelihood of the Rasch mixture model in 
+Equation~\ref{eq:RMM:hg} only applies to $h(\cdot)$ but not to the score 
+distribution $g(\cdot)$. The mixture is then only based on latent structure in
+the item difficulties, not on latent structure in both difficulties and scores. 
+Moreover, such a Rasch mixture model based only on the conditional likelihood 
+without any score distribution is equivalent to a Rasch mixture model where the
+score distribution is independent of the latent class $k = 1, \ldots, K$:
+
 %
 \begin{equation*}
   \label{eq:scores:restricted}
-  g(r | \delta^{(k)}) = g(r | \delta) \qquad (k = 1, \dots, K).
+  g(r | \delta^{(k)}) = g(r | \delta) \qquad (k = 1, \dots, K),
 \end{equation*}
 %
-The independence of the item parameter estimates can then be seen easily from
-the definition of the posterior weights (Equation~\ref{eq:RMM:Estep:hg}): 
-$g(\cdot)$ can be moved out of the sum and then cancels out. Thus, the 
-$\hat p_{ik}$ depend only on $\hat \pi^{(k)}$ and $\hat \beta^{(k)}$ but not 
-$\hat \delta^{(k)}$. Therefore, the component weights and component-specific item
-parameters can be estimated without any specification of the score distribution.
-To complete the likelihood, a score distribution is simply fitted to the 
-full-sample scores. 
+because then the factor $g(r|\delta)$ is a constant that can be moved out of 
+the sum over the components $k$ in Equation~\ref{eq:RMM:hg}. Consequently, 
+compared to the case without any score distribution, the log-likelihood just
+changes by an additional constant without component-specific parameters. In
+either case, the estimation of the component-specific parameters item parameters
+as well as the selection of the number of components $K$ is independent of the
+specification of the score distribution.
 
-Consequently, using a restricted score specification, the likelihood of the 
-Rasch mixture model (Equation~\ref{eq:RMM:hg}) can be split into two factors: 
-one depending on the general score parameters $\delta$ and the other one 
-depending on latent class-specific prior probabilities 
-$\pi^{(1)}, \ldots, \pi^{(K)}$ and item difficulties 
-$\beta^{(1)}, \ldots, \beta^{(K)}$. The mixture is then only based on latent
-structure in the item difficulties, not on latent structure in both difficulties
-and scores. Also, the selection of the number of classes~$K$ is \emph{not} 
-affected by the specification of the score distribution $g(\cdot)$.
+This equivalence and independence from the score distribution can also be seen 
+easily from the definition of the posterior weights 
+(Equation~\ref{eq:RMM:Estep:hg}): If restricted, $g(\cdot)$ can be moved out of
+the sum and then cancels out, preserving only the dependence on $h(\cdot)$. 
+Thus, the $\hat p_{ik}$ depend only on $\hat \pi^{(k)}$ and $\hat \beta^{(k)}$ but 
+not $\hat \delta^{(k)}$. Therefore, the component weights and component-specific 
+item parameters can be estimated without any specification of the score 
+distribution.
+
+Subsequently, we adopt the restricted perspective rather than omitting 
+$g(\cdot)$ completely, when we want to obtain a mixture model where the mixture 
+is independent of the score distribution. From a statistical point of view this 
+facilitates comparisons of the restricted Rasch mixture model with the 
+corresponding unrestricted counterpart.
+
 
 \subsubsection{Overview}
 
@@ -449,17 +521,88 @@ and implications for the whole Rasch mixture model.
 
 The simple question \emph{\dquote{DIF or no DIF?}} leads to the question 
 whether the Rasch mixture model is suitable as a tool to detect such violations 
-of measurement invariance. As the score distribution influences the estimation 
+of measurement invariance. 
+
+As the score distribution influences the estimation 
 of the Rasch mixture model in general, it is of particular interest how it 
 influences the estimation of the number of latent classes, the measure used to 
 determine Rasch scalability.
-        
-To illustrate how suitable the different score specifications are to detect DIF
-(or lack thereof) a Monte Carlo study has been performed. The \proglang{R} 
-system for statistical computing \citep{psychomix:RCore:2.15.2} was used with 
-the add-on packages \pkg{psychomix} \citep{psychomix:Frick+Strobl+Leisch:2012} 
-and \pkg{clv} \citep{psychomix:Nieweglowski:2009}.
 
+\subsection{Motivational example}
+
+As a motivation for the simulation design, consider the following example: The 
+instrument is a knowledge test which is administered to students from two
+different types of schools and who have been prepared by one of two different 
+courses for the knowledge test. Either of the two groupings might be the source
+of DIF (or impact). If the groupings are available as covariates to the item
+responses of the students, then a test for DIF between either school types or
+course types can be easily carried out using the LR test. However, if the
+groupings are not available (or even observed) as covariates, then a DIF test is
+still possible by means of the Rasch mixture model. The performance of such a 
+DIF assessment is investigated in our simulation study for different effects of
+school and course type, respectively.
+
+In the following we assume that the school type is linked to ability difference 
+(i.e., impact but not DIF) while the course type is the source of DIF (but not
+impact). This can be motivated in the following way (see also 
+Figure~\ref{fig:simD:motiv}): When the students from the two school types 
+differ in their mean ability, this is impact between these two groups. The 
+courses might be a standard course and a new specialized course. While the 
+standard course covers all topics of the test equally, the specialized course 
+gives more emphasis to a relatively advanced topic and due to time constraints 
+less emphasis to a relatively basic topic. This may lead to DIF between the 
+students in the standard and the specialized course. See the left panel of 
+Figure~\ref{fig:simD:DIFhomo} for illustrative item profiles of the standard 
+course (in dark gray) and the specialized course (in light gray).
+
+Finally, the ability groups by school and the DIF groups by course can either 
+coincide or not. If all students in the first school type are being taught the 
+standard course while all students in the second school type are being taught 
+the specialized course, the DIF groups \emph{coincide} with the ability groups.
+The DIF and ability groups do \emph{not coincide} but only overlap partly if
+both course types are taught in both school types: each DIF group (based on the
+type of course taught) consists of a mix of students from both schools and
+therefore from both ability groups. An illustration of coinciding and not
+coinciding ability and DIF groups is provided in the upper and lower row of
+Figure~\ref{fig:simD:motiv}, respectively. Ability groups, based on school type,
+are shown in the columns, while DIF groups, based on course type, are 
+illustrated with dark and light gray for the standard course and specialized 
+course, respectively. This difference of coinciding or not coinciding DIF and 
+ability groups might have an influence on the Rasch mixture model's ability to
+detect the DIF because in the former case the score distributions differ between
+the two DIF groups while in the latter case they do not.
+
+Subsequently, a Monte Carlo study is carried out to investigate how the Rasch 
+mixture model performs in situations where such groupings are present in the
+underlying data-generating process but are not available as observed covariates.
+Moreover, we vary whether or not all students come from the same school type
+(i.e., from the same ability distribution), whether or not all students receive
+the standard course (i.e., whether there is DIF), and whether both school types
+use the same or different courses (i.e., whether the groupings coincide or not).
+For all computations, the \proglang{R} system for statistical computing 
+\citep{psychomix:R:3.0.2} is used along with the add-on packages \pkg{psychomix}
+\citep{psychomix:Frick+Strobl+Leisch:2012} and \pkg{clv} 
+\citep{psychomix:Nieweglowski:2013}.
+
+
+\setkeys{Gin}{width = 0.8\textwidth}
+\begin{figure}[t!]
+  \centering
+<<fig-simD-motiv, echo = FALSE, fig = TRUE, width = 7, height = 2>>=
+mygrays <- gray.colors(2)
+par(mar = c(0.1, 6, 3, 0.1), las = 1)
+plot(0, 0, xlim = c(-0.2, 3), ylim = c(0.2, 1.8), type = "n", axes = FALSE, xlab = "", ylab = "")
+points(rep(c(0 + 0:3/5.5, 1 + 0:3/5.5), 2), rep(c(1.5, 0.5), each = 8), pch = 21,
+  bg = mygrays[c(rep(1, 4), rep(2, 4), 1, 2, 1, 2, 2, 2, 1, 1)], cex = 2)
+axis(2, at = c(1.5, 0.5), c("Coinciding", "Not coinciding"), lwd = 0, pos = -0.2, line = 0)
+axis(3, at = c(0, 1), c("School type I\n(low ability)", "School type II\n(high ability)"),
+  lwd = 0, hadj = 0)
+legend(2, 1.7, c("standard", "specialized"), title = "Course type\n(source of DIF)",
+  pch = 21, pt.bg = mygrays, bty = "n", title.adj = 0)
+@   
+  \caption{Grouping structure in the motivational example.}
+  \label{fig:simD:motiv}
+\end{figure}
 
 \subsection{Simulation design} \label{sec:design}
 
@@ -484,7 +627,7 @@ generateDesign <- function(nobs = 500, m = 20, weights = NULL,
   ability <- if(ab.dist == "fix"){
     array(c(rbind(ab, 1)), dim = c(1,2,4)) # 1 = rel.frequency in sample()
   } else {
-    rbind(ab, 0.5) ## 0.5 = sd for rnorm()
+    rbind(ab, 0.3) ## 0.3 = sd for rnorm()
   }
 
   ## difficulty
@@ -523,15 +666,15 @@ myhcl <- psychomix:::qualitative_hcl(3)
 
 ## load simulated data
 load("scoresim.rda")
-scoresim$prop23 <-  1 - scoresim$prop1
+scoresim$prop23 <- 1 - scoresim$prop1
 @ 
 
-The simulations included in \cite{psychomix:Rost:1990} are the starting point
-for developing the design used here. Similar to the original simulation study,
-the item parameters represent a test with increasingly difficult items. Here,
-20~items are employed with corresponding item parameters $\beta^\mathit{I}$
-which follow a sequence from $-1.9$ to 1.9 with increments of 0.2 and hence sum
-to zero. 
+The simulation design combines ideas from the motivational example with aspects
+from the simulation study conducted by \cite{psychomix:Rost:1990}. Similar to 
+the original simulation study, the item parameters represent an instrument with
+increasingly difficult items. Here, 20~items are employed with corresponding 
+item parameters $\beta^\mathit{I}$ which follow a sequence from $-1.9$ to 1.9 
+with increments of 0.2 and hence sum to zero. 
 %
 \begin{eqnarray*}
   \beta^\mathit{I} &=& (-1.9, -1.7, \ldots, 1.7, 1.9)^{\top}  \label{eq:simD:betaI}\\
@@ -539,15 +682,14 @@ to zero.
 \end{eqnarray*}
 %
 To introduce DIF, a second set of item parameters $\beta^\mathit{II}$ is 
-considered where items 5 and 15 are changed by $\pm \Delta$. This approach is 
+considered where items 5 and 16 are changed by $\pm \Delta$. This approach is 
 similar in spirit to that of \cite{psychomix:Rost:1990} -- who reverses the full
 sequence of item parameters to generate DIF -- but allows for gradually changing
-from small to large DIF effect sizes. As in \cite{psychomix:Rost:1990}, the 
-abilities are drawn from a discrete distribution. For simplicity, they are drawn
-with equal proportions from two values only,$-\Theta/2$ and $+\Theta/2$, thus 
-creating a sample where half of the subjects have an ability of $-\Theta/2$ and
-the other half an abilty of $+\Theta/2$. Such a difference in ability is often 
-called impact \citep{psychomix:Ackerman:1992}.
+from small to large DIF effect sizes. 
+Subject abilities are drawn with equal weights from two normal distributions 
+with means $-\Theta/2$ and $+\Theta/2$ and standard deviation 0.3, thus creating
+a sample with two groups of subjects: one group with a lower mean ability and
+one with a higher mean ability. 
 
 In the simulations below, the DIF effect size $\Delta$ ranges from 0 to 4 in 
 steps of 0.2 
@@ -565,17 +707,14 @@ while the impact $\Theta$ covers the same range in steps of 0.4:
 \end{equation*}
 %
 
-Drawing abilities from two normal distributions with means $-\Theta/2$ 
-and $+\Theta/2$ leads to qualitatively similar results which are not reported 
-here.
-
+%
 \begin{table}[t!]
   \small
   \centering
   \begin{tabular}{rlcccc}
     \hline\noalign{\smallskip}
     \multicolumn{2}{l}{Scenario} & \multicolumn{2}{c}{Latent class~I} &  \multicolumn{2}{c}{Latent class~II} \\
-    & & Abilities & Difficulties & Abilities & Difficulties \\
+    & & Mean abilities & Difficulties & Mean abilities & Difficulties \\
     \noalign{\smallskip}\hline\noalign{\smallskip}
     \multicolumn{6}{l}{\em No impact $(\Theta = 0)$}\\ \noalign{\smallskip}
     1 & no DIF $(\Delta = 0)$ & $\{ 0 \}$ & $\beta^\mathit{I}$ & --- & --- \\
@@ -583,8 +722,8 @@ here.
     \noalign{\smallskip}\hline\noalign{\smallskip}
     \multicolumn{6}{l}{\em Impact $(\Theta > 0)$}\\ \noalign{\smallskip}
     3 & no DIF $(\Delta = 0)$ & $\{ -\Theta/2, +\Theta/2 \}$ & $\beta^\mathit{I}$ & --- & --- \\
-    4 & DIF $(\Delta > 0)$, impact within & $\{ -\Theta/2, +\Theta/2 \}$ & $\beta^\mathit{I}$ & $\{ -\Theta/2, +\Theta/2 \}$ & $\beta^\mathit{II}$ \\
-    5 & DIF $(\Delta > 0)$, impact between & $\{ -\Theta/2 \}$ & $\beta^\mathit{I}$ & $\{ +\Theta/2 \}$ & $\beta^\mathit{II}$ \\
+    4 & DIF $(\Delta > 0)$, not coinciding & $\{ -\Theta/2, +\Theta/2 \}$ & $\beta^\mathit{I}$ & $\{ -\Theta/2, +\Theta/2 \}$ & $\beta^\mathit{II}$ \\
+    5 & DIF $(\Delta > 0)$, coinciding & $\{ -\Theta/2 \}$ & $\beta^\mathit{I}$ & $\{ +\Theta/2 \}$ & $\beta^\mathit{II}$ \\
    \noalign{\smallskip}\hline
   \end{tabular}
   \caption{Simulation design. The latent-class-specific item parameters $\beta^\mathit{I}$ and 
@@ -592,6 +731,7 @@ here.
     leaving only a single latent class.
   \label{tab:simD:design}}
 \end{table}
+%
 
 \setkeys{Gin}{width = \textwidth}
 \begin{figure}[p!]
@@ -603,7 +743,7 @@ par(mfrow = c(1,2))
 par(mar = c(2, 4, 2, 2) + 0.1) # c(bottom, left, top, right)
 
 ## only DIF
-des <- generateDesign(ab = 0, dif = 2)
+des <- generateDesign(ab = 0, dif = 2, ab.dist = "normal")
 set.seed(1)
 dat <- simRaschmix(des)
 rs <- rowSums(dat)
@@ -631,7 +771,7 @@ par(mfrow = c(1, 2))
 par(mar = c(2, 4, 2, 2) + 0.1) 
 
 ## only heterogeneous abilities
-des <- generateDesign(ab = 1, dif = 0) ## ab = 1 --> impact = 2
+des <- generateDesign(ab = 1, dif = 0, ab.dist = "normal") ## ab = 1 --> impact = 2
 set.seed(1)
 dat <- simRaschmix(des)
 rs <- rowSums(dat)
@@ -660,7 +800,7 @@ par(mar = c(2, 4, 2, 2) + 0.1)
 
 ## designs:
 ## heterogeneous abilities within DIF groups
-des <- generateDesign(ab = 1.0, dif = 2, coincide = FALSE) ## ab = 1 --> impact = 2
+des <- generateDesign(ab = 1.0, dif = 2, coincide = FALSE, ab.dist = "normal") ## ab = 1 --> impact = 2
 set.seed(1)
 dat <- simRaschmix(des)
 rs <- rowSums(dat)
@@ -670,7 +810,7 @@ ip <- attr(dat, "difficulty")[,2:3]
 stacked_bars(rs, cl, max = 20, ylab = "Score frequencies", xlab = "")
 
 ## heterogeneous abilities between DIF groups
-des <- generateDesign(ab = 1.0, dif = 2, coincide = TRUE) ## ab = 1 --> impact = 2
+des <- generateDesign(ab = 1.0, dif = 2, coincide = TRUE, ab.dist = "normal") ## ab = 1 --> impact = 2
 set.seed(1)
 dat <- simRaschmix(des)
 rs <- rowSums(dat)
@@ -683,16 +823,18 @@ par(mfrow = c(1,1))
 @ 
 %
 \caption{Stacked histograms of score distributions for Scenarios~4 (left) and~5
-  (right) with DIF ($\Delta = 2$). Left: impact within groups ($\Theta = 2$). 
-  Right: impact between groups ($\Theta = 2$). For item difficulties see 
-  Figure~\ref{fig:simD:DIFhomo} (left).
+  (right) with DIF ($\Delta = 2$). Left: impact and DIF, not coinciding 
+  ($\Theta = 2$). Right: impact and DIF, coinciding ($\Theta = 2$). For item 
+  difficulties see Figure~\ref{fig:simD:DIFhomo} (left).
   \label{fig:simD:DIFhet}}
 \end{figure}
 
-Impact and DIF, or lack thereof, can be combined in several ways.
+Impact and DIF, or lack thereof, can be combined in several ways. 
 Table~\ref{tab:simD:design} provides an overview and 
 Figures~\ref{fig:simD:DIFhomo}, \ref{fig:simD:noDIFhet}, 
-and~\ref{fig:simD:DIFhet} show illustrations:
+and~\ref{fig:simD:DIFhet} show illustrations. In the following, the different 
+combinations of impact and DIF are explained in more detail and connected to the
+motivational example:
 %
 \begin{itemize}
   \item If the simulation parameter~$\Delta$ for the DIF effect size is set to 
@@ -700,31 +842,80 @@ and~\ref{fig:simD:DIFhet} show illustrations:
     are identical and no DIF is present. Since CML is employed, model selection
     and parameter estimation is typically expected to be independent of whether
     or not an impact is present (Scenario~1 and~3 in 
-    Table~\ref{tab:simD:design}).
+    Table~\ref{tab:simD:design}). 
     
-  \item If $\Delta > 0$, the item parameter set $\beta^\mathit{II}$ is 
-    different from $\beta^\mathit{I}$. Hence, there is DIF and two latent classes
-    exist (Scenarios~2, 4, and~5). Both classes are chosen to be of equal size 
-    in this case. For an illustration see the left panel of
-    Figure~\ref{fig:simD:DIFhomo}.
+    In the example: Only the standard course is taught and hence no DIF exists.
+    
+  \item If $\Delta > 0$, the item parameter set $\beta^\mathit{II}$ is different
+    from $\beta^\mathit{I}$. Hence, there is DIF and two latent classes exist 
+    (Scenarios~2, 4, and~5). Both classes are chosen to be of equal size in this
+    case. For an illustration see the left panel of
+    Figure~\ref{fig:simD:DIFhomo}. 
+    
+    In the example: Both courses are taught, thus leading to DIF. The standard 
+    course corresponds to the straight line as the item profile while the
+    specialized course corresponds to the spiked item profile with relatively
+    difficult item~16 being easier and the relatively easy item~5 being more
+    difficult for students in this specialized course than for students in the
+    standard course.
 
-  \item If the simulation parameter $\Theta$ for the impact is set to zero, 
-    abilities are homogeneous across all subjects (Scenarios~1 and~2) and the 
-    resulting score distribution is unimodal. For an illustration see the right
-    panel of Figure~\ref{fig:simD:DIFhomo}. The histogram is shaded in light and
-    dark gray for the two DIF groups present in this example from Scenario 2 and
-    thus to be read like a \dquote{stacked histogram}.
+  \item If the simulation parameter $\Theta$ for the impact is set to 
+    zero~(Scenarios~1 and~2), then the resulting score distribution is unimodal.
+    For an illustration of such a unimodal score distribution see the right 
+    panel of Figure~\ref{fig:simD:DIFhomo}. This histogram illustrates 
+    specifically Scenario~2 where no impact is present but DIF exists. The
+    histogram is shaded in light and dark gray for the two DIF groups and thus 
+    to be read like a \dquote{stacked histogram}.
     
-  \item If $\Theta > 0$, subject abilities are sampled from 
-    $\{-\Theta/2, +\Theta/2\}$ with equal weights, thus generating impact. When
-    no DIF is included (Scenario~3), the resulting score distribution moves from
-    being unimodal to being bimodal with increasing $\Theta$. For the
-    illustration in Figure~\ref{fig:simD:noDIFhet} only a medium gray is used to
-    shade the histogram as no DIF groups are present. However, if there is 
-    DIF~(i.e., $\Delta > 0$), two combinations of DIF with impact are 
-    considered: Impact can occur within each DIF group (Scenario~4) or between 
-    DIF groups (Scenario~5). Illustrations of the resulting score distributions
-    can be found in Figure~\ref{fig:simD:DIFhet}. 
+    In the example: All students are from the same school and hence there is no 
+    impact. However, both types of courses may be taught in this one school, 
+    thus leading to DIF as in Scenario~2.
+      
+  \item If $\Theta > 0$, subject abilities are sampled with equal weights from 
+    two normal distributions with means $\{-\Theta/2, +\Theta/2\}$, thus 
+    generating impact. When no DIF is included (Scenario~3), the resulting score
+    distribution moves from being unimodal to being bimodal with increasing
+    $\Theta$. The two modi of high and low scores represent the two groups of 
+    subjects with high and low mean abilities, respectively. However, only a 
+    medium gray is used to shade the illustrating histogram in 
+    Figure~\ref{fig:simD:noDIFhet} as \emph{no DIF groups} are present.
+    
+    In the example: Only the standard course is taught in both school types.
+    Hence no DIF is present but impact between the school types.
+    
+  \item If there is DIF~(i.e., $\Delta > 0$) in addition to impact~(i.e., 
+    $\Theta > 0$), subjects can be grouped both according to mean ability (high 
+    vs.\ low) and difficulty (straight vs.\ spiked profile in $\beta^{I}$ and
+    $\beta^{II}$, respectively).
+    
+    These groups can \emph{coincide}: For subjects with low mean 
+    ability~$-\Theta/2$, item difficulties~$\beta^{I}$ hold, while for subjects
+    with high mean ability~$+\Theta/2$, item difficulties~$\beta^{II}$ hold. This
+    is simulated in Scenario~5 and labeled \emph{Impact and DIF, coinciding}. 
+    The resulting score distribution is illustrated in the right panel of 
+    Figure~\ref{fig:simD:DIFhet}. Subjects for whom item 
+    difficulties~$\beta^{I}$ hold are shaded in dark gray and as they also have
+    lower mean abilities, their scores are all relatively low. Conversely, 
+    subjects for whom item difficulties~$\beta^{II}$ hold are shaded in light
+    gray and as they also have higher mean abilities, their scores are all 
+    relatively high.
+    
+    Additionally, the DIF groups and ability groups can also 
+    \emph{not coincide}: Subjects in either DIF group may stem from both ability
+    groups, not just one. This is simulated in Scenario~4 and labeled
+    \emph{Impact and DIF, not coinciding}. The resulting score distribution is
+    illustrated in the left panel of Figure~\ref{fig:simD:DIFhet}. Again, 
+    subjects for whom item difficulties~$\beta^{I}$ and $\beta^{II}$ hold are 
+    shaded in dark and light gray, respectively. As subjects stem from both
+    ability groups (high vs.\ low abilities), both score distributions are 
+    bimodal.
+      
+    In the example: Students from both school types and from both course types
+    are considered, thus leading to both impact and DIF. Either both courses are
+    taught at both schools (Scenario~4, not coinciding) or the standard course
+    is only taught in the first school and the specialized course is only taught
+    at the second school (Scenario~5, coinciding).
+    
 \end{itemize}
 %
 Note that Scenario~1 is a special case of Scenario~2 where $\Delta$ is 
@@ -735,21 +926,20 @@ separately but included in both the setting of
 \emph{Impact without DIF} (Scenario~3) as a reference point. 
 Similarly, Scenarios~4 and~5 both can be reduced to Scenario~3 if $\Delta$ is 
 set to zero. It is therefore also included in both the setting of
-\emph{Impact within DIF groups} (Scenario~4) and the setting of
-\emph{Impact between DIF groups} (Scenario~5) as a reference point.
-
-Also note that the Scenarios~3 and~4 essentially correspond to the designs~1 
-and~2 of \cite{psychomix:Rost:1990}.
+\emph{Impact and DIF, not coinciding} (Scenario~4) and the setting of
+\emph{Impact and DIF, coinciding} (Scenario~5) as a reference point.
 
 For each considered combination of $\Delta$ and $\Theta$, 500 datasets of 500 
-observations each are generated. Observations with raw scores of 0 or $m$ are
-removed from the dataset as they do not contribute to the estimation of the
-Rasch mixture model \citep{psychomix:Rost:1990}. For each dataset, Rasch mixture
+observations each are generated. Larger numbers of datasets or observations lead
+to very similar results. Observations with raw scores of 0 or $m$ are removed
+from the dataset as they do not contribute to the estimation of the Rasch
+mixture model \citep{psychomix:Rost:1990}. For each dataset, Rasch mixture 
 models for each of the saturated, mean-variance, and restricted score 
 specifications are fitted for $K = 1, 2, 3$.
 
+%\pagebreak
 
-\subsection{Type I error and power in DIF detection} \label{sec:DIFdetection}
+\subsection{False alarm rate and hit rate} \label{sec:DIFdetection}
 
 The main objective here is to determine how suitable a Rasch mixture model, 
 with various choices for the score model, is to recognize DIF or the lack 
@@ -759,16 +949,23 @@ For each dataset and type of score model, models with $K = 1, 2, 3$ latent
 classes are fitted and the $\hat K$ associated with the minimum BIC is selected.
 Choosing one latent class ($\hat K = 1$) then corresponds to assuming 
 measurement invariance while choosing more than one latent class ($\hat K > 1$)
-corresponds to finding DIF in at least one item of the test. The empirical 
-proportion among the 500~datasets with $\hat K > 1$ then essentially corresponds
-to the power of DIF detection if $\Delta > 0$ (and thus two true latent classes)
-and to the associated type I error if $\Delta = 0$ (and thus only one true 
-latent class).
+corresponds to assuming violations of measurement invariance. While Rasch
+mixture models do not constitute a formal significance test, the empirical 
+proportion among the 500~datasets with $\hat K > 1$ corresponds in essence to
+the power of DIF detection if $\Delta > 0$ (and thus two true latent classes 
+exist) and to the associated type I error of a corresponding test if 
+$\Delta = 0$ (and thus only one true latent class exists). If the rate
+corresponds to power, it will be referred to as \emph{hit rate} whereas if it 
+corresponds to a type I error it will be referred to as \emph{false alarm rate}.
 
+In the following subsections, the key results of the simulation study 
+will be visualized. The exact rates for all conditions are included as a dataset
+in the \proglang{R} package \pkg{psychomix}, for details see the section on 
+computational details.
 
 \subsubsection{Scenario 2: No impact with DIF}
 
-This scenario is investigated as it is a case of DIF that should be fairly 
+This scenario is investigated as a case of DIF that should be fairly 
 simple to detect. There is no impact as abilities are homogeneous across all 
 subjects so the only latent structure to detect is the group membership based on
 the two item profiles. This latent structure is made increasingly easy to detect
@@ -778,24 +975,35 @@ Figure~\ref{fig:simD:DIFhomo}) this corresponds to enlarging the spikes in the
 item profile. 
 
 Figure~\ref{fig:simR:DIFhomo} shows how the rate of choosing a model with more 
-than one latent class ($\hat K > 1$) increases along with the DIF effect 
-size~$\Delta$. At $\Delta = 0$ this corresponds to the type I error rate of DIF
-detection which is very close to zero for all three score distributions. With 
-increasing $\Delta > 0$ the rate corresponds to the power of DIF detection and 
-increases as well. For low values of $\Delta$ none of the three models is able 
-to pick up the DIF but at around $\Delta = 3$ the two more parsimonious versions
-of the Rasch mixture model (with mean-variance and restricted score 
-distribution) start to have increasing power which almost approaches $1$ at 
-$\Delta = 4$. Not surprisingly, the restricted score specification performs 
-somewhat better because in fact the raw score distributions do not differ
-between the two latent classes. The saturated score model, however, has almost
-no power over the range of $\Delta$ considered. The reason is that it requires 
-18~additional score parameters for an additional latent class which is 
-\dquote{too costly} in terms of BIC. Hence, $\hat K = 1$ is chosen for almost 
-all Rasch mixture models using a saturated score distribution.
+than one latent class~($\hat K > 1$) increases along with the DIF effect 
+size~$\Delta$. At~$\Delta = 0$, this is a false alarm rate. It is around $7$\% 
+for the saturated model and very close to zero for the mean-variance and the
+saturated score model ($< 1$\%). With increasing $\Delta > 0$, the rate is a 
+hit rate. For low values of~$\Delta$ the two more parsimonious versions of the
+Rasch mixture model (with mean-variance and restricted score distribution) are 
+not able to pick up the DIF but at around~$\Delta = 3$ the hit rate for the two
+models increases and almost approaches~$1$ at~$\Delta = 4$. Not surprisingly, 
+the restricted score specification performs somewhat better because in fact the 
+raw score distributions do not differ between the two latent classes. 
+The baseline hit rate of the saturated model for low values of~$\Delta$
+is the same as the false alarm rate for~$\Delta = 0$. It only increases beyond 
+the same threshold~($\Delta = 3$) as the hit rate of the other two models.
+However, its rate is much lower compared to the other two score model (only 
+around 30\%). The reason is that it requires 18~additional score parameters 
+for an additional latent class which is \dquote{too costly} in terms of BIC. 
+Hence,~$\hat K = 1$ is chosen for most Rasch mixture models using a saturated
+score distribution.
 
-\emph{Brief summary:} The mean-variance and restricted model have a higher power
-than the saturated model in the absense of impact.
+The number of iterations in the EM algorithm which are necessary for the
+estimation to converge is much lower for the mean-variance and the restricted 
+model than for the saturated model. Since the estimation of the saturated model
+is more extensive due to the higher number of parameters required by this model,
+it does not converge in about 10\% of the cases before reaching the maximum 
+number of iterations which was set to 400. The mean-variance and saturated model
+usually converge within the first 200 iterations.
+
+\emph{Brief summary:} The mean-variance and restricted model have higher hit 
+rates than the saturated model in the absence of impact.
 
 
 \setkeys{Gin}{width = 0.65\textwidth}
@@ -836,25 +1044,26 @@ impact resulting in a bimodal score distribution as illustrated in
 Figure~\ref{fig:simD:noDIFhet}.
 
 Here, the rate of choosing more than one latent class can be interpreted as a 
-false discovery or false alarm rate (Figure~\ref{fig:simR:noDIFhet}). In the 
-setting of a test this would correspond to the type I error of the test. The 
-restricted score model is invariant against any latent structure in the score 
-distribution and thus almost always suggests $\hat K = 1$ latent class based on
-the DIF-free item difficulties. The saturated model also picks $\hat K = 1$ in
-most of the simulation. This might be due to its general reluctance to choose
+false alarm rate (Figure~\ref{fig:simR:noDIFhet}). The restricted score model
+is invariant against any latent structure in the score distribution and thus 
+almost always ($\le$ 0.2\%) suggests $\hat K = 1$ latent class based on the
+DIF-free item difficulties. The rate does not approach any specific significance
+level as the Rasch mixture model, regardless of the employed score distribution,
+is not a formal significance test. The saturated model also picks $\hat K = 1$ 
+in most of the simulation. This might be due to its general reluctance to choose
 more than one latent class as illustrated in Figure~\ref{fig:simR:DIFhomo} or
 the circumstance that it can assume any shape (including bimodal patterns).
 However, the mean-variance score distribution can only model unimodal or 
 U-shaped distributions as mentioned above. Hence, with increasing impact and
 thus increasingly well-separated modes in the score distribution, the Rasch 
-mixture model with this score specification often suggests $\hat K > 1$ latent 
-classes. Note, however, that these latent classes do not represent the DIF 
-groups (as there are none) but rather groups of subjects with high vs.\ low 
-abilities. While this may be acceptable (albeit unnecessarily complex) from a 
-statistical mixture modeling perspective, it is misleading from a psychometric 
-point of view if the aim is DIF detection. Only one Rasch model needs to be 
-estimated for this type of data, consistent item parameter estimates can be 
-obtained via CML and all observations can be scaled in the same way.
+mixture model with this score specification suggests $\hat K > 1$ latent 
+classes in up to 53\% of the cases. Note, however, that these latent classes do 
+not represent the DIF groups (as there are none) but rather groups of subjects 
+with high vs.\ low abilities. While this may be acceptable (albeit unnecessarily
+complex) from a statistical mixture modeling perspective, it is misleading from 
+a psychometric point of view if the aim is DIF detection. Only one Rasch model 
+needs to be estimated for this type of data, consistent item parameter estimates
+can be obtained via CML and all observations can be scaled in the same way.
 
 \emph{Brief summary:} If measurement invariance holds but ability differences 
 are present, the mean-variance model exhibits a high false alarm rate while the
@@ -887,73 +1096,59 @@ Scenario~3 (impact without DIF, i.e., $\Delta = 0$).
 \end{figure}
 
 
-\subsubsection{Scenario 4: Impact within DIF groups}
+\subsubsection{Scenario 4: Impact and DIF, not coinciding}
 
 In this scenario, there is DIF (and thus two true latent classes) if 
 $\Delta > 0$. Again, Scenario~3 with $\Delta = 0$ (and thus without DIF) is 
-included as a reference point. However, unlike in Scenario~2 the abilities 
-within the latent classes are not homogeneous but impact exists within each DIF
-group. Nonetheless, the score distribution is the same across both latent 
-classes (illustrated in the left panel of Figure~\ref{fig:simD:DIFhet}).
+included as a reference point. However, unlike in Scenario~2, the abilities 
+within the latent classes are not homogeneous but two ability groups exist, 
+which do not coincide with the two DIF groups. Nonetheless, the score
+distribution is the same across both latent classes (illustrated in the left
+panel of Figure~\ref{fig:simD:DIFhet}).
 
 Figure~\ref{fig:simR:DIFhetWithin} again shows the rate of choosing $\hat K > 1$
-for increasing DIF effect size $\Delta$ for different levels of impact 
-$\Theta = 0.4, 2.0, 3.6$. If impact is small (left panel with $\Theta = 0.4$), 
-the rates are very similar to the case of completely homogeneous abilities 
-without impact (Figure~\ref{fig:simR:DIFhomo} with $\Theta = 0$). While the 
-rates for the restricted and the saturated score model do not change 
-substantially for an increased impact ($\Theta = 2.0$ and $3.6$), the 
-mean-variance model is influenced by this change in ability differences. While 
-power is increased over the whole range of $\Delta$, the type I error (or false
-alarm rate) at $\Delta = 0$ is increased to the same extent. Moreover, the 
-detection rate only increases noticeably beyond the initial type I error rate 
-at around $\Delta = 3$, i.e., the same DIF effect size at which the restricted 
-and mean-variance specifications have power given homogeneous abilities without
-impact. Thus, given rather high impact ($\Theta = 3.6$) the power is not driven
-by the DIF detection but rather the model's tendency to assign subjects with
-high vs.\ low abilities into different groups (as already seen in 
+for increasing DIF effect size $\Delta$ for two levels of impact~($\Theta = 2.4$
+and $3.6$), exemplary for medium and high impact. If impact is small 
+(e.g.,~$\Theta = 0.4$), the rates are very similar to the case of completely
+homogeneous abilities without impact~(Figure~\ref{fig:simR:DIFhomo} 
+with~$\Theta = 0$) and thus not visualized here. While the rates for the 
+restricted and the saturated score model do not change substantially for an 
+increased impact~($\Theta = 2.4$ and~$3.6$), the mean-variance model is
+influenced by this change in ability differences. While the hit rate is
+increased to around 20\% over the whole range of~$\Delta$, the false alarm rate
+at~$\Delta = 0$ is increased to the same extent. Moreover, the hit rate only
+increases noticeably beyond the initial false alarm rate at around~$\Delta = 3$,
+i.e., the same DIF effect size at which the restricted and mean-variance
+specifications have an increasing hit rate given homogeneous abilities without
+impact. Thus, given rather high impact~($\Theta = 3.6$) the hit rate is not
+driven by the DIF detection but rather the model's tendency to assign subjects 
+with high vs.\ low abilities into different groups (as already seen in 
 Figure~\ref{fig:simR:noDIFhet}).
 
 \setkeys{Gin}{width = \textwidth}
 \begin{figure}[t!]
 \centering
 %
-<<fig-simR-DIFhetWithin, echo = FALSE, fig = TRUE, width = 7, height = 2.5>>=
-par(mfrow = c(1, 3))
-layout(matrix(c(rep(1,5), rep(2,4), rep(3,5)), nrow = 1, byrow = TRUE))
+<<fig-simR-DIFhetWithin, echo = FALSE, fig = TRUE, width = 6.4, height = 3>>=
+par(mfrow = c(1, 2))
+layout(matrix(c(rep(1,4), rep(2,4)), nrow = 1, byrow = TRUE))
 
-## impact = 0.4
+## impact = 2.4
 par(mar = c(5, 4, 4, 0.5) + 0.1)
 plot(prop23 ~ delta, data = scoresim, 
-  subset = theta == 0.4 & scores == "saturated" & (scenario == 4 | delta == 0), 
-  main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
+  subset = theta == 2.4 & scores == "saturated" & (scenario == 4 | delta == 0), 
+  main = expression(paste("Impact ", Theta, " = 2.4", sep = "")),
   ylim = c(0,1), type = "b", 
   xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "Choose more than 1 latent class", col = myhcl[3], lty = 3, pch = 3)
 lines(prop23 ~ delta, 
-  data = scoresim, subset = theta == 0.4 & scores == "meanvar" & (scenario == 4 | delta == 0), 
+  data = scoresim, subset = theta == 2.4 & scores == "meanvar" & (scenario == 4 | delta == 0), 
   type = "b", col = myhcl[2], lty = 1, pch = 1)
 lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 0.4 & scores == "restricted" & (scenario == 4 | delta == 0),
+  subset = theta == 2.4 & scores == "restricted" & (scenario == 4 | delta == 0),
   type = "b", col = myhcl[1], lty = 2, pch = 6)
 legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
   col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
-                
-## impact = 2.0
-par(mar = c(5, 0.5, 4, 0.5) + 0.1) # c(bottom, left, top, right)
-plot(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "saturated" & (scenario == 4 | delta == 0), 
-  main = expression(paste("Impact ", Theta, " = 2.0", sep = "")),
-  ylim = c(0,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
-  ylab = "", col = myhcl[3], lty = 3, pch = 3)
-box(); axis(1)
-lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "meanvar" & (scenario == 4 | delta == 0), 
-  type = "b", col = myhcl[2], lty = 1, pch = 1)
-lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "restricted" & (scenario == 4 | delta == 0),
-  type = "b", col = myhcl[1], lty = 2, pch = 6)
 
 ## impact = 3.6
 par(mar = c(5, 0.5, 4, 4) + 0.1) # c(bottom, left, top, right)
@@ -975,28 +1170,31 @@ par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1,1)) ## restore default
 @
 %
 \caption{Rate of choosing a model with $\hat K > 1$ latent classes for data from
-  Scenario~4 (impact within DIF groups).
+  Scenario~4 (impact and DIF, not coinciding).
   \label{fig:simR:DIFhetWithin}}
 \end{figure}
 
 As Rasch mixture models with $K = 1, 2, 3$ classes are considered, selecting
 $\hat K > 1$ classes can either mean selecting the correct number of $K = 2$
-or overselecting $K = 3$ classes. For the saturated and restricted 
-specifications overselection is rare (occurring with rates of less than 5\% or 
+or overselecting $\hat K = 3$ classes. For the saturated and restricted 
+specifications overselection is rare (occurring with rates of less than 9\% or 
 less than 1\%, respectively). However, similar to Scenario~3 overselection is 
 not rare for the mean-variance specification. Figure~\ref{fig:simR:prop23} 
 depicts the rates of selecting $\hat K = 2$ and $\hat K = 3$ classes, 
-respectively, for increasing $\Delta$ at $\Theta = 3.6$ (hollow symbols for 
-Scenario~4). The rate for overselection ($\hat K = 3$) is already at around 
-30\% for low values of $\Delta$ and even increases somewhat further starting
-from around $\Delta = 3$.
+respectively, for increasing~$\Delta$ at $\Theta = 3.6$. If the chances of 
+finding the correct number of classes increase with the DIF effect 
+size~$\Delta$, the rate for overselection ($\hat K = 3$) should drop with 
+increasing~$\Delta$. For this Scenario~4, denoted with hollow symbols, this rate
+stays largely the same (around 25\%) and even slightly increases beyond this
+level, starting from around $\Delta = 3$. This illustrates again the pronounced 
+tendency of the mean-variance model for overselection in cases of high impact.
 
 \emph{Brief summary:} If impact is simulated within DIF groups, the 
-mean-variance model has higher power than the saturated and resticted models. 
-However, the latent classes estimated by the mean-variance model are mostly 
-based on ability differences when the DIF effect size is low. If the DIF effect 
-size is high, the mean-variance model tends to overestimate the number of 
-classes.
+mean-variance model has higher hit rates than the saturated and restricted 
+models. However, the latent classes estimated by the mean-variance model are 
+mostly based on ability differences if the DIF effect size is low. If the DIF 
+effect size is high, the mean-variance model tends to overestimate the number 
+of classes.
 
 
 \setkeys{Gin}{width = 0.65\textwidth}
@@ -1042,74 +1240,61 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 \end{figure}
 \setkeys{Gin}{width = \textwidth}
 
+%\clearpage
 
-\subsubsection{Scenario 5: Impact between DIF groups}
+\subsubsection{Scenario 5: Impact and DIF, coinciding}
 
-In Scenario~5, there is also DIF (i.e., $\Delta > 0$) and impact.
-However, in contrast to Scenario~4 impact exists between the DIF groups but
-not within (see the right panel of Figure~\ref{fig:simD:DIFhet}). Furthermore,
-Scenario~3 is included also here as the reference point without DIF 
-($\Delta = 0$).
+In Scenario~5, there is also DIF (i.e., $\Delta > 0$) and impact. However, in 
+contrast to Scenario~4 the ability and DIF groups coincide (see the right panel
+of Figure~\ref{fig:simD:DIFhet}). Furthermore, Scenario~3 is included also here
+as the reference point without DIF ($\Delta = 0$).
 
 Again, small ability differences do not strongly influence the rate of choosing 
-more than one latent class (compare left panel of 
-Figure~\ref{fig:simR:DIFhetBetween} and Figure~\ref{fig:simR:DIFhomo}). Both 
-mean-variance and restricted specification have comparable power for DIF 
-detection starting from around $\Delta = 3$ while the saturated specification 
-has very lower power. As impact increases (middle and right panels of 
-Figure~\ref{fig:simR:DIFhetBetween}), the power of all models increases as well
-because the ability differences contain information about the DIF groups: 
-separating subjects with low and high abilities also separates the two DIF 
-groups (not separating subjects within each DIF group as in the previous 
-setting). However, for the mean-variance model this increased power is again 
-coupled with a drastically increased false alarm rate at $\Delta = 0$. The 
+more than one latent class (rates for low levels of impact, such 
+as~$\Theta = 0.4$, are similar to those for~$\Theta = 0$ as depicted in 
+Figure~\ref{fig:simR:DIFhomo}). Recall, both mean-variance and restricted 
+specification have comparable hit rates for DIF detection starting from around 
+$\Delta = 3$ while the saturated specification has lower hit rates. 
+
+As impact increases (Figure~\ref{fig:simR:DIFhetBetween}), the hit rates of all
+models increases as well because the ability differences contain information 
+about the DIF groups: separating subjects with low and high abilities also 
+separates the two DIF groups (not separating subjects within each DIF group as 
+in the previous setting). However, for the mean-variance model these increased 
+hit rates are again coupled with a highly increased false alarm rate at 
+$\Delta = 0$ of 26\% and 50\% for $\Theta = 2.4$ and $3.6$, respectively. The 
 restricted score model, on the other hand, is invariant to latent structure in 
 the score distribution and thus performs similarly as in previous DIF scenarios,
 suggesting more than one latent class past a certain threshold of DIF intensity,
-albeit this threshold being a bit lower than in the case of impact within DIF 
-groups (around $\Delta = 2$). The saturated model detects more than one latent 
-class at a similarly low or lower rate than the other two models regardless of 
-the level of impact.
+albeit this threshold being a bit lower than when ability groups and DIF groups
+do not coincide (around $\Delta = 2$). The saturated model detects more than one
+latent class at a similar rate to the restricted score model for medium or high
+impact but its estimation converges more slowly and requires more iterations of
+the EM algorithm than the other two score models.
 
 \begin{figure}[t!]
 \centering
 % 
-<<fig-simR-DIFhetBetween, echo = FALSE, fig = TRUE, width = 7, height = 2.5>>=
-par(mfrow = c(1, 3))
-layout(matrix(c(rep(1,5), rep(2,4), rep(3,5)), nrow = 1, byrow = TRUE))
+<<fig-simR-DIFhetBetween, echo = FALSE, fig = TRUE, width = 6.4, height = 3>>=
+par(mfrow = c(1, 2))
+layout(matrix(c(rep(1,4), rep(2,4)), nrow = 1, byrow = TRUE))
 
-## impact = 0.4
+## impact = 2.4
 par(mar = c(5, 4, 4, 0.5) + 0.1)
 plot(prop23 ~ delta, data = scoresim, 
-  subset = theta == 0.4 & scores == "saturated" & (scenario == 5 | delta == 0), 
-  main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
+  subset = theta == "2.4" & scores == "saturated" & (scenario == 5 | delta == 0), 
+  main = expression(paste("Impact ", Theta, " = 2.4", sep = "")),
   ylim = c(0,1), type = "b", 
   xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "Choose more than 1 latent class", col = myhcl[3], lty = 3, pch = 3)
 lines(prop23 ~ delta, 
-  data = scoresim, subset = theta == 0.4 & scores == "meanvar" & (scenario == 5 | delta == 0), 
+  data = scoresim, subset = theta == "2.4" & scores == "meanvar" & (scenario == 5 | delta == 0), 
   type = "b", col = myhcl[2], lty = 1, pch = 1)
 lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 0.4 & scores == "restricted" & (scenario == 5 | delta == 0),
+  subset = theta == "2.4" & scores == "restricted" & (scenario == 5 | delta == 0),
   type = "b", col = myhcl[1], lty = 2, pch = 6)
-legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
-  col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
-
-## impact = 2.0
-par(mar = c(5, 0.5, 4, 0.5) + 0.1) # c(bottom, left, top, right)
-plot(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "saturated" & (scenario == 5 | delta == 0), 
-  main = expression(paste("Impact ", Theta, " = 2.0", sep = "")),
-  ylim = c(0,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
-  ylab = "", col = myhcl[3], lty = 3, pch = 3)
-box(); axis(1)
-lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "meanvar" & (scenario == 5 | delta == 0), 
-  type = "b", col = myhcl[2], lty = 1, pch = 1)
-lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "restricted" & (scenario == 5 | delta == 0),
-  type = "b", col = myhcl[1], lty = 2, pch = 6)
+## legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
+##   col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
 
 ## impact = 3.6
 par(mar = c(5, 0.5, 4, 4) + 0.1) # c(bottom, left, top, right)
@@ -1126,12 +1311,14 @@ lines(prop23 ~ delta, data = scoresim,
 lines(prop23 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "restricted" & (scenario == 5 | delta == 0),
   type = "b", col = myhcl[1], lty = 2, pch = 6)
+legend("bottomright", legend = c("saturated", "mean-variance", "restricted"), 
+  col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
 
 par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1,1)) ## restore default
 @
 %
 \caption{Rate of choosing a model with $\hat K > 1$ latent classes for data from
-  Scenario~5 (impact between DIF groups).
+  Scenario~5 (impact and DIF, coinciding).
   \label{fig:simR:DIFhetBetween}}
 \end{figure}
 
@@ -1140,54 +1327,63 @@ Figure~\ref{fig:simR:prop23} (solid symbols) shows that this problem disappears
 for the mean-variance specification if both DIF effect size $\Delta$ and impact
 are large \emph{and} coincide. For the restricted model overselection is again 
 very rare throughout (occurring in less than 1\% of all cases) while the 
-saturated model overselects in up to 25\% of the datasets.
+saturated model overselects in up to 29\% of the datasets.
 
 \emph{Brief summary:} If abilities differ between DIF groups, the mean-variance 
 model detects the violation of measurement invariance for smaller DIF effect 
 sizes than the saturated and restricted model. While the mean-variance model 
-does not overselect the number of components in this scenario, the high power 
-is connected to a high false alarm rate when no DIF is present but impact is 
-high. This does not affect the other two score models.
+does not overselect the number of components in this scenario, the high hit
+rates are connected to a high false alarm rate when no DIF is present but impact
+is high. This does not affect the other two score models.
 
 
 \subsection{Quality of estimation} \label{sec:quality}
 
-Once the number of latent classes is established/estimated, it is of interest 
-how well the estimated model fits the data. In the context of Rasch mixture 
-models with different score distributions, the posterior probabilities 
-$\hat p_{ik}$ (Equation~\ref{eq:RMM:Estep:hg}) are crucial as the estimation of 
-the item parameters depends on the score distribution only through these. Thus,
-if the $\hat p_{ik}$ were the same for all three score specifications, the 
-estimated item difficulties were the same as well. Hence, it needs to be 
-assessed how close the estimated posterior probabilities are to the true latent 
-classes in the data. If the similarity between these is high, CML estimation of 
-the item parameters within the classes will also yield better results.
+Although here the Rasch mixture model is primarily used analogously to a global
+DIF test, model assessment goes beyond the question whether or not the correct
+number of latent classes is found. Once the number of latent classes is 
+established/estimated, it is of interest how well the estimated model fits the
+data. Which groups are found? How well are the parameters estimated? In the
+context of Rasch mixture models with different score distributions, both of
+these aspects depend heavily on the posterior probabilities $\hat p_{ik}$ 
+(Equation~\ref{eq:RMM:Estep:hg}) as the estimation of the item parameters 
+depends on the score distribution only through these. If the $\hat p_{ik}$ were
+the same for all three score specifications, the estimated item difficulties 
+were the same as well. Hence, the focus here is on how close the estimated
+posterior probabilities are to the true latent classes in the data. If the
+similarity between these is high, CML estimation of the item parameters within
+the classes will also yield better results for all score models.
 
 This is a standard task in the field of cluster analysis and we adopt the widely
 used Rand index \citep{psychomix:Rand:1971} here: Each observation is assigned
-to the latent class for which its posterior probability is highest and then 
-pairs of observations are considered. Each pair can either be in the same class
-in both the true and the estimated classification, in different classes for both
-classifications or it can be in the same class for one but not the other
-classification. The Rand index is the proportion of pairs for which both 
-classifications agree. Thus, it can assume values between 0 and 1, indicating 
-total dissimilarity and similarity, respectively.
+to the latent class for which its posterior probability is highest yielding an
+estimated classification of the data which is compared to the true
+classification. For this comparison, pairs of observations are considered. Each
+pair can either be in the same class in both the true and the estimated 
+classification, in different classes for both classifications or it can be in
+the same class for one but not the other classification. The Rand index is the
+proportion of pairs for which both classifications agree. Thus, it can assume
+values between 0 and 1, indicating total dissimilarity and similarity, 
+respectively.
+
 
 \setkeys{Gin}{width = \textwidth}
 \begin{figure}[t!]
 \centering
-%
-<<fig-simR-DIFhetWithinRand2, echo = FALSE, fig = TRUE, width = 7, height = 2.5>>=
-par(mfrow = c(1, 3))
-layout(matrix(c(rep(1,5), rep(2,4), rep(3,5)), nrow = 1, byrow = TRUE))
+% 
+<<fig-simR-Rand, echo = FALSE, fig = TRUE, width = 6, height = 4.7>>=
+par(mar = c(5, 4, 4, 2) + 0.1) # c(bottom, left, top, right)
+#par(mfrow = c(2, 2))
+layout(matrix(rep(1:4, each = 4), nrow = 2, byrow = TRUE))
 
-#par(mar = c(5, 4, 4, 6) + 0.1) # c(bottom, left, top, right)
-par(mar = c(5, 4, 4, 0.5) + 0.1)
+## scenario 4
+## impact = 0.4
+par(mar = c(1.5, 4, 4, 0.5) + 0.1)
 plot(rand2 ~ delta, data = scoresim, 
   subset = theta == 0.4 & scores == "saturated" & scenario == 4 & delta > 0, 
   main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
   ylim = c(0.5,1), type = "b", 
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
+  xlab = "", #expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "Rand index", col = myhcl[3], lty = 3, pch = 3)
 lines(rand2 ~ delta, 
   data = scoresim, subset = theta == 0.4 & scores == "meanvar" & scenario == 4 & delta > 0, 
@@ -1198,27 +1394,13 @@ lines(rand2 ~ delta, data = scoresim,
 legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
   col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
                                         
-par(mar = c(5, 0.5, 4, 0.5) + 0.1) # c(bottom, left, top, right)
-plot(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "saturated" & scenario == 4 & delta > 0, 
-  main = expression(paste("Impact ", Theta, " = 2.0", sep = "")),
-  ylim = c(0.5,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
-  ylab = "", col = myhcl[3], lty = 3, pch = 3)
-box(); axis(1)
-lines(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "meanvar" & scenario == 4 & delta > 0, 
-  type = "b", col = myhcl[2], lty = 1, pch = 1)
-lines(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "restricted" & scenario == 4 & delta > 0,
-  type = "b", col = myhcl[1], lty = 2, pch = 6)
-
-par(mar = c(5, 0.5, 4, 4) + 0.1) # c(bottom, left, top, right)
+## impact = 3.6
+par(mar = c(1.5, 0.5, 4, 4) + 0.1)
 plot(rand2 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "saturated" & scenario == 4 & delta > 0, 
   main = expression(paste("Impact ", Theta, " = 3.6", sep = "")),
   ylim = c(0.5,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
+  xlab = "", #expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "", col = myhcl[3], lty = 3, pch = 3)
 box(); axis(1)
 lines(rand2 ~ delta, data = scoresim, 
@@ -1227,54 +1409,14 @@ lines(rand2 ~ delta, data = scoresim,
 lines(rand2 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "restricted" & scenario == 4 & delta > 0,
   type = "b", col = myhcl[1], lty = 2, pch = 6)
+text(4.4, 0.65, "Scenario 4", pos = 4, srt = 90, xpd = TRUE)
 
-par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1,1)) ## restore default
-@
-%
-\caption{Average Rand index for models with $K = 2$ latent classes for data 
-  from Scenario~4 (impact within DIF groups).
-  \label{fig:simR:DIFhetWithinRand2}}
-\end{figure}
-
-In the following, the Rand index for models with the true number of
-$K = 2$ latent classes in Scenarios~4 and~5 (with DIF) is considered. Thus,
-the question of DIF detection (or model selection) is not investigated again
-but only the quality of latent class recovery (assuming the number of classes
-$K$ to be known or correctly selected). Figure~\ref{fig:simR:DIFhetWithinRand2}
-depicts the average Rand index for data from Scenario~4 (impact within DIF 
-groups). Here, all three score specifications find similarly well matching 
-classifications, while the Rand index generally decreases with increasing
-impact (left to right panel). In particular, while the mean-variance score model
-has problems finding the \emph{correct number} of latent classes in this 
-scenario, it only performs slightly worse than the other two specifications in 
-determining the \emph{correct classes} if the number were known. Similarly, if
-it is provided with the correct number of classes, the saturated model also 
-identifies the correct classes equally well compared to the other models -- 
-while it hardly ever chooses the correct number of classes in the first place.
-
-However, in Scenario~5 where the score distribution contains information about
-the DIF groups, the three score specifications perform very differently as
-Figure~\ref{fig:simR:DIFhetBetweenRand2} shows. Given the correct number of 
-classes, the mean-variance model is most suitable to uncover the true latent 
-classes, yielding Rand indices close to 1 if both DIF effect size and impact are
-large. The saturated specification follows a similar pattern albeit with poorer 
-results. However, the classifications obtained from the restricted score 
-specification do not match the true groups well in this scenario. The reason is
-that the restricted score model is partially misspecified as the score 
-distributions differ substantially across DIF groups.
-
-\begin{figure}[b!]
-\centering
-% 
-<<fig-simR-DIFhetBetweenRand2, echo = FALSE, fig = TRUE, width = 7, height = 2.5>>=
-par(mfrow = c(1, 3))
-layout(matrix(c(rep(1,5), rep(2,4), rep(3,5)), nrow = 1, byrow = TRUE))
-
-#par(mar = c(5, 4, 4, 6) + 0.1) # c(bottom, left, top, right)
-par(mar = c(5, 4, 4, 0.5) + 0.1)
+## scenario 5
+## impact = 0.4
+par(mar = c(5, 4, 1, 0.5) + 0.1)
 plot(rand2 ~ delta, data = scoresim, 
   subset = theta == 0.4 & scores == "saturated" & scenario == 5 & delta > 0, 
-  main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
+  #main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
   ylim = c(0.5,1), type = "b", 
   xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "Rand index", col = myhcl[3], lty = 3, pch = 3)
@@ -1284,28 +1426,13 @@ lines(rand2 ~ delta,
 lines(rand2 ~ delta, data = scoresim, 
   subset = theta == 0.4 & scores == "restricted" & scenario == 5 & delta > 0,
   type = "b", col = myhcl[1], lty = 2, pch = 6)
-legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
-  col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
-                                        
-par(mar = c(5, 0.5, 4, 0.5) + 0.1) # c(bottom, left, top, right)
-plot(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "saturated" & scenario == 5 & delta > 0, 
-  main = expression(paste("Impact ", Theta, " = 2.0", sep = "")),
-  ylim = c(0.5,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
-  ylab = "", col = myhcl[3], lty = 3, pch = 3)
-box(); axis(1)
-lines(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "meanvar" & scenario == 5 & delta > 0, 
-  type = "b", col = myhcl[2], lty = 1, pch = 1)
-lines(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "restricted" & scenario == 5 & delta > 0,
-  type = "b", col = myhcl[1], lty = 2, pch = 6)
-
-par(mar = c(5, 0.5, 4, 4) + 0.1) # c(bottom, left, top, right)
+#legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
+#  col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
+ 
+par(mar = c(5, 0.5, 1, 4) + 0.1) # c(bottom, left, top, right)
 plot(rand2 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "saturated" & scenario == 5 & delta > 0, 
-  main = expression(paste("Impact ", Theta, " = 3.6", sep = "")),
+  #main = expression(paste("Impact ", Theta, " = 3.6", sep = "")),
   ylim = c(0.5,1), type = "b", axes = FALSE,
   xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "", col = myhcl[3], lty = 3, pch = 3)
@@ -1316,14 +1443,44 @@ lines(rand2 ~ delta, data = scoresim,
 lines(rand2 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "restricted" & scenario == 5 & delta > 0,
   type = "b", col = myhcl[1], lty = 2, pch = 6)
+text(4.4, 0.65, "Scenario 5", pos = 4, srt = 90, xpd = TRUE)
 
 par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1,1)) ## restore default
 @
 %
-\caption{Average Rand index for models with $K = 2$ latent classes for data 
-  from Scenario~5 (impact between DIF groups).
-  \label{fig:simR:DIFhetBetweenRand2}}
+\caption{Average Rand index for models with $K = 2$ latent classes. 
+   Top row: Scenario~4 (impact and DIF, not coinciding). Bottom row: Scenario~5 
+   (impact and DIF, coinciding).
+  \label{fig:simR:Rand}}
 \end{figure}
+
+In the following, the Rand index for models with the true number of $K = 2$ 
+latent classes in Scenarios~4 and~5 (with DIF) is considered. Thus, the
+question of DIF detection (or model selection) is not investigated again but
+only the quality of latent class recovery (assuming the number of classes $K$ 
+to be known or correctly selected). The top row of Figure~\ref{fig:simR:Rand} 
+depicts the average Rand index for data from Scenario~4 (impact and DIF, not 
+coinciding). Here, all three score specifications find similarly well matching 
+classifications, while the Rand index generally decreases with increasing impact
+(left to right panel). In particular, while the mean-variance score model
+has problems finding the \emph{correct number} of latent classes in this 
+scenario, it only performs slightly worse than the other two specifications in 
+determining the \emph{correct classes} if the number were known. Similarly, if
+it is provided with the correct number of classes, the saturated model also 
+identifies the correct classes equally well compared to the other models -- 
+despite its difficulties with convergence for higher DIF effect sizes.
+
+However, in Scenario~5 where the score distribution contains information about
+the DIF groups, the three score specifications perform very differently as
+the bottom row of Figure~\ref{fig:simR:Rand} shows. Given the correct number of 
+classes, the mean-variance model is most suitable to uncover the true latent 
+classes, yielding Rand indices close to 1 if both DIF effect size and impact are
+large. The saturated specification follows a similar pattern albeit with poorer 
+results, reaching values of up to 0.87. However, the classifications obtained 
+from the restricted score specification do not match the true groups well in 
+this scenario, remaining below 0.52 if impact is high. The reason is that the 
+restricted score model is partially misspecified as the score distributions 
+differ substantially across DIF groups.
 
 
 \subsection{Summary and implications for practical use}\label{sec:discussion}
@@ -1335,18 +1492,19 @@ results for DIF detection:
 
 %
 \begin{itemize}
-  \item The saturated score model has much lower power than the other two 
+  \item The saturated score model has much lower hit rates than the other two 
     specifications, i.e., violation of measurement invariance remains too often
-    undetected.
-  \item The mean-variance model has much better power. However, if impact is 
+    undetected. Only if high impact and high DIF effect sizes coincide does the
+    saturated model perform similarly well as the restricted model.
+  \item The mean-variance model has much higher hit rates. However, if impact is
     present in the abilities, this specification has highly inflated false alarm
     rates. Hence, if the mean-variance model selects more than one latent class
     it is unclear whether this is due to DIF or just varying subject abilities.
     Thus, measurement invariance might still hold even if more than one latent
     class is detected.
-  \item The restricted score model also has high power, comparable to the 
+  \item The restricted score model also has high hit rates, comparable to the 
     mean-variance model if abilities are rather homogeneous. But unlike the 
-    mean-variance specification, its type I error rate is not distorted by 
+    mean-variance specification, its false alarm rate is not distorted by 
     impact. Its performance is not influenced by the ability distribution and 
     detecting more than one latent class reliably indicates DIF, i.e., a 
     violation of measurement invariance.
@@ -1354,22 +1512,33 @@ results for DIF detection:
 %
 Hence, if the Rasch mixture model is employed for assessing measurement 
 invariance or detecting DIF, then the restricted score specification appears to 
-be most robust. Thus, the selection of the number of latent classes should be 
-based on this specification.
+be most robust. Thus, the selection of the number of latent classes should only
+be based on this specification.
 
+\cite{psychomix:DeMars:2010} illustrate how significance tests based on the 
+observed (raw) scores in reference and focal groups suffer from inflated type~I
+error rates with an increased sample size if impact is present. This does not 
+apply to the false alarm rate of Rasch mixture models because not a significance
+test but rather model selection via BIC is carried out. The rate of the BIC 
+selecting the correct model increases with larger sample size if the true model
+is a Rasch mixture model. Since consistent estimates are employed, a larger 
+sample size also speeds up convergence, which is particularly desirable for the 
+saturated model if the number of latent classes and thus the number of 
+parameters is high.
+  
 Given the correct number of classes, the different score models are all 
 similarly suitable to detect the true classification if ability impact does not 
 contain any additional information about the DIF groups. However, if ability 
-impact is highly correlated with DIF groups in the data, this information can be
-exploited by the unrestricted specifications while it distracts the restricted 
-model.
+impact is highly correlated with DIF groups in the data and the ability groups 
+thus coincide with the DIF groups, this information can be exploited by the 
+unrestricted specifications while it distracts the restricted model.
 
 Thus, while the selection of the number of latent classes should be based only
 on the restricted score specification, the unrestricted mean-variance and
 saturated specifications might still prove useful for estimating the Rasch
 mixture model (after $\hat K$ has been selected). 
 
-We therefore recommend a two step approach for DIF detection via a Rasch 
+We therefore recommend a two-step approach for DIF detection via a Rasch 
 mixture model. First, the number of latent classes is determined via the 
 restricted score model. Second, if furthermore the estimation of the item 
 difficulties is of interest, the full selection of score models can the be 
@@ -1379,22 +1548,27 @@ given the number of latent classes. If this approach is applied to the full
 range of score models (saturated and mean-variance, both unrestricted and 
 restricted), the nesting structure of the models needs to be kept in mind. 
 
+%\pagebreak
 
 \section{Empirical application: Verbal aggression}\label{sec:application}
 
-We illustrate this approach on a dataset on verbal aggression 
-\citep{psychomix:Boeck+Wilson:2004}. Participants are presented with 
-one of two potentially frustrating situations (S1 and S2):
-\vspace{0.5cm}
+We use a dataset on verbal aggression \citep{psychomix:Boeck+Wilson:2004} to
+illustrate this two-step approach of first assessing measurement invariance via
+a Rasch mixture model with a restricted score distribution and then employing 
+all possible score models to find the best fitting estimation of the item 
+difficulties.
+
+Participants in this study are presented with one of two potentially frustrating
+situations (S1 and S2):
 %
 \begin{itemize}
   \item S1: A bus fails to stop for me.
   \item S2: I miss a train because a clerk gave me faulty information.
 \end{itemize}
 %
-and a verbally aggressive response (cursing, scolding, shouting). 
-Combining each situation and response with either \dquote{I want to} or 
-\dquote{I do} leads to the following items:
+and a verbally aggressive response (cursing, scolding, shouting). Combining each
+situation and response with either \dquote{I want to} or \dquote{I do} leads to
+the following 12 items:
 %
 <<VerbalData, echo=FALSE>>=
 data("VerbalAggression", package = "psychotools")
@@ -1413,8 +1587,12 @@ items <- colnames(va12$resp2)
 \end{table*}
 %
 
-First, we determine the number of latent classes $K$ using the BIC for the
-Rasch mixture model with a restricted score specification:
+First, we assess measurement invariance with regard to the whole instrument: 
+we fit a Rasch mixture model with a restricted score distribution 
+for~$K = 1,2,3,4$ and employ the BIC for model selection. Note that the 
+restricted versions of the mean-variance and saturated model only differ in 
+their log-likelihood by a constant factor and therefore lead to the same model
+selection. Results are presented in Table~\ref{tab:selectK}.
 %
 <<VerbalResFit0, echo = FALSE, eval = FALSE>>=
 set.seed(403)
@@ -1434,29 +1612,33 @@ if(cache & file.exists("va12_mvR.rda")){
 }
 @ 
 <<VerbalLC, echo = FALSE>>=
-mvRbic <- round(BIC(mvR), digits = 1)
 mvR3 <- getModel(mvR, which = "BIC")
+clsizes <- table(clusters(mvR3))
 @ 
-% 
 %
-\begin{table*}[h]
-  \centering
-  \begin{tabular}{lrrrr}
-    Classes & 1 & 2 & 3 & 4 \\
-    BIC & \Sexpr{mvRbic[1]} & \Sexpr{mvRbic[2]} & \Sexpr{mvRbic[3]} & \Sexpr{mvRbic[4]}
-  \end{tabular}
-\end{table*}
 %
+<<VerbalTableK, echo = FALSE>>=
+tabK <- data.frame(model = rep("restricted", 4),
+  k = sapply(mvR@models, function(x) x@k),
+  df = sapply(mvR@models, function(x) x@df),
+  logLik = sapply(mvR@models, function(x) x@logLik),
+  bic = sapply(mvR@models, BIC))
+@ 
 
-Thus, $\hat K = 3$ latent classes are selected. Given this selection of $K$, 
-four different models are conceivable: either using a restricted or unrestricted
-score model, and either using a saturated or mean-variance specification.
-Note that the models with restricted saturated score distribution and restricted
-mean-variance score distribution lead to identical item parameter estimates.
-However, it is still of interest to fit them separately because each of the
-restricted specifications is nested within the corresponding unrestricted
-specification. Furthermore, the mean-variance distribution is nested within
-the saturated distribution.
+The BIC for a Rasch mixture model with more than one latent class is smaller 
+than the BIC for a single Rasch model, thus indicating that measurement 
+invariance is violated. The best fitting model has $\hat K = 3$ latent classes.
+Given this selection of $K$, we want to gain further insight in the data and 
+thus want to establish the best fitting Rasch mixture model with $K = 3$ latent 
+classes. Four different models are conceivable: either using a restricted or 
+unrestricted score model, and either using a saturated or mean-variance 
+specification. The results for all four options are presented in 
+Table~\ref{tab:selectScores}. Note that the models with restricted saturated 
+score distribution and restricted mean-variance score distribution lead to 
+identical item parameter estimates. However, it is still of interest to fit them
+separately because each of the restricted specifications is nested within the 
+corresponding unrestricted specification. Furthermore, the mean-variance 
+distribution is nested within the saturated distribution.
 %
 <<VerbalScoresFit0, echo = FALSE, eval = FALSE>>=
 ## fit all possible score models
@@ -1478,69 +1660,60 @@ if(cache & file.exists("va12_m3.rda")){
 }
 @ 
 %
-%
-<<VerbalLRtest, echo = FALSE, results = hide>>=
-## check which score model fits best
-library("lmtest")
-lrtest(sat3, mv3, mvR3)
-lrtest(sat3, satR3, mvR3)
-clsizes <- table(clusters(mvR3))
+<<VerbalTableS, echo = FALSE>>=
+library("lmtest") ## for p-values in text
+tabS <- data.frame(model = c("saturated", "restricted (saturated)", 
+    "mean-variance", "restricted (mean-variance)"),
+  k = sapply(list(sat3, satR3, mv3, mvR3), function(x) x@k),
+  df = sapply(list(sat3, satR3, mv3, mvR3), function(x) x@df),
+  logLik = sapply(list(sat3, satR3, mv3, mvR3), function(x) x@logLik),
+  bic = sapply(list(sat3, satR3, mv3, mvR3), BIC))
 @ 
 
+\begin{table}[t!]
+  \centering
+  \begin{tabular}{lrrrr}
+    \hline
+    Model & k & \#Df & $\log L$ & BIC \\
+    \hline
+    restricted (mean-variance) & \Sexpr{tabK$k[1]} & \Sexpr{tabK$df[1]} & $\Sexpr{round(tabK$logLik[1], 1)}$ & \Sexpr{round(tabK$bic[1], 1)} \\
+    restricted (mean-variance) & \Sexpr{tabK$k[2]} & \Sexpr{tabK$df[2]} & $\Sexpr{round(tabK$logLik[2], 1)}$ & \Sexpr{round(tabK$bic[2], 1)} \\
+    \textbf{restricted (mean-variance)} & \textbf{\Sexpr{tabK$k[3]}} & \textbf{\Sexpr{tabK$df[3]}} & $\mathbf{\Sexpr{round(tabK$logLik[3], 1)}}$ & \textbf{\Sexpr{round(tabK$bic[3], 1)}} \\
+    restricted (mean-variance) & \Sexpr{tabK$k[4]} & \Sexpr{tabK$df[4]} & $\Sexpr{format(round(tabK$logLik[4], 1), nsmall = 1)}$ & \Sexpr{round(tabK$bic[4], 1)} \\
+    \hline
+  \end{tabular}
+  \caption{DIF detection by selecting the number of latent classes $\hat K$ using the restricted Rasch mixture model.}
+  \label{tab:selectK}
+\end{table}
+
+\begin{table}[t!]
+  \centering
+  \begin{tabular}{lrrrr}
+    \hline
+    Model & k & \#Df & $\log L$ & BIC \\
+    \hline
+    saturated & \Sexpr{tabS$k[1]} & \Sexpr{tabS$df[1]} & $\Sexpr{round(tabS$logLik[1], 1)}$ & \Sexpr{round(tabS$bic[1], 1)} \\
+    restricted (saturated) & \Sexpr{tabS$k[2]} & \Sexpr{tabS$df[2]} & $\Sexpr{round(tabS$logLik[2], 1)}$ & \Sexpr{round(tabS$bic[2], 1)} \\
+    mean-variance & \Sexpr{tabS$k[3]} & \Sexpr{tabS$df[3]} & $\Sexpr{round(tabS$logLik[3], 1)}$ & \Sexpr{round(tabS$bic[3], 1)} \\
+    \textbf{restricted (mean-variance)} & \textbf{\Sexpr{tabS$k[4]}} & \textbf{\Sexpr{tabS$df[4]}} & $\mathbf{\Sexpr{round(tabS$logLik[4], 1)}}$ & \textbf{\Sexpr{round(tabS$bic[4], 1)}} \\
+    \hline
+  \end{tabular}
+  \caption{Selection of the score distribution given the number of latent classes $\hat K = 3$.}
+  \label{tab:selectScores}
+\end{table}
+
 As $K = 3$ is identical for all of these four models, standard likelihood ratio
-tests can be used for comparing all nested models with each other. The results 
-for the verbal aggression data are shown in Figure~\ref{fig:verbalTest}. This 
-shows that only the likelihood ratio test for restricted vs.\ unrestricted 
-saturated specification is significant at 5\% level while all other comparisons
-are (marginally) nonsignificant. Hence, the restricted mean-variance 
-distribution is adopted here which also has the lowest BIC. 
+tests can be used for comparing all nested models with each other. 
+%The results for the verbal aggression data are shown in Figure~\ref{fig:verbalTest}. 
+Testing the most parsimonious score model, the restricted mean-variance model, 
+against its unrestricted version and the restricted saturated model at a 5\% 
+level shows that a more flexible score model does not yield a significantly 
+better fit. The p-value are \Sexpr{round(lrtest(mvR3, mv3)[2,5], 3)} and 
+\Sexpr{round(lrtest(mvR3, satR3)[2,5], 3)}, respectively. Hence, the restricted 
+mean-variance distribution is adopted here which also has the lowest BIC. 
 
-
-\setkeys{Gin}{width = 0.65\textwidth}
-\begin{figure}[t!]
-\centering
-%  
-<<fig-verbalTest, echo = FALSE, fig = TRUE, width = 6.5, height = 4.5>>=
-par(mar = rep(0, 4))
-
-node <- function(x, y, lab, eps = 0.11, col = mygrays[2]) {
-  polygon(x + c(-1, -1, 1, 1, -1) * eps, y + c(-1, 1, 1, -1, -1) * eps, col = col)
-  text(x, y, lab)
-}
-edge <- function(x1, y1, x2, y2, lab, eps = 0.13, length = 0.1, ...) {
-  if(x1 == x2) {
-    arrows(x1, y1 + eps, x2, y2 - eps, length = length, ...)
-    text(mean(c(x1, x2)), mean(c(y1, y2)), lab, pos = 2)
-  } else {
-    arrows(x1 + eps, y1, x2 - eps, y2, length = length, ...)  
-    text(mean(c(x1, x2)), mean(c(y1, y2)), lab, pos = 1)
-  }
-}
-
-plot(0, 0, xlim = c(0, 1), ylim = c(0, 1), type = "n", axes = FALSE, xlab = "", ylab = "")
-
-node(0.2, 0.2, sprintf("saturated\n(BIC: %s)", format(round(BIC(sat3), digits = 1), nsmall = 1)))
-node(0.2, 0.8, sprintf("saturated\nrestricted\n(BIC: %s)", format(round(BIC(satR3), digits = 1), nsmall = 1)))
-node(0.8, 0.2, sprintf("mean-variance\n(BIC: %s)", format(round(BIC(mv3), digits = 1), nsmall = 1)))
-node(0.8, 0.8, sprintf("mean-variance\nrestricted\n(BIC: %s)", format(round(BIC(mvR3), digits = 1), nsmall = 1)))
-
-edge(0.2, 0.2, 0.2, 0.8, format(round(lrtest(sat3, satR3)[2,5], digits = 3), nsmall = 3))
-edge(0.2, 0.8, 0.8, 0.8, format(round(lrtest(satR3, mvR3)[2,5], digits = 3), nsmall = 3))
-edge(0.2, 0.2, 0.8, 0.2, format(round(lrtest(sat3, mv3  )[2,5], digits = 3), nsmall = 3))
-edge(0.8, 0.2, 0.8, 0.8, format(round(lrtest(mv3 , mvR3 )[2,5], digits = 3), nsmall = 3))
-
-par(mar = c(5, 4, 4, 2) + 0.1)
-@
-%
-\caption{Likelihood ratio test $p$-values and BIC for Rasch mixture models with
-  $K = 3$ latent classes and different score distribution specifications for 
-  the verbal aggression data. (Arrows denote the direction of nesting towards 
-  more restricted models.)
-  \label{fig:verbalTest}}
-\end{figure}
-
-
-Figure~\ref{fig:verbalItems} shows the corresponding item profiles.
+To visualize how the three classes found in the data differ, the corresponding 
+item profiles are shown in Figure~\ref{fig:verbalItems}.
 
 \begin{itemize}
   \item The latent class in the right panel (with 
@@ -1552,8 +1725,8 @@ Figure~\ref{fig:verbalItems} shows the corresponding item profiles.
     \dquote{want-item}, of each pair. The three types of response (cursing,
     scolding, shouting) are considered increasingly aggressive, regardless of
     the situation (first six items vs.\ last six items). 
-  \item The latent class in the middle panel (with 
-    \Sexpr{clsizes[2]}~observations) distinguishes more strongly between the 
+  \item The latent class in the left panel (with 
+    \Sexpr{clsizes[1]}~observations) distinguishes more strongly between the 
     types of response. However, the relationship between wanting and doing is 
     reversed for all responses except shouting. It is more difficult to agree to
     the item \dquote{I want to curse/scold} than to the corresponding item 
@@ -1561,13 +1734,13 @@ Figure~\ref{fig:verbalItems} shows the corresponding item profiles.
     aggressive behavior where one is quick to react a certain way rather than 
     just wanting to react that way. However, shouting is considered a very 
     aggressive response, both in wanting and doing.
-  \item The remaining latent class (with \Sexpr{clsizes[1]}~observations 
-    considerably smaller), depicted in the left panel, does not distinguish 
+  \item The remaining latent class (with \Sexpr{clsizes[2]}~observations 
+    considerably smaller), depicted in the middle panel, does not distinguish 
     that clearly between response types, situations or wanting vs.\ doing.
 \end{itemize}
 
 \setkeys{Gin}{width=\textwidth}
-\begin{figure}[b!]
+\begin{figure}[t!]
 \centering
 %
 <<VerbalItemPlot, echo = FALSE, fig = TRUE, width = 10, height = 4.3>>=
@@ -1581,54 +1754,60 @@ xyplot(mvR3)
   \label{fig:verbalItems}}
 \end{figure}
 
-%% rs <- rowSums(va12$resp2)
-%% hist(rs, breaks = 1:12 - 0.5, freq = FALSE)
-%% lines(1:13, scoreProbs(satR3)[,1], col = myhcl[1])
-%% #lines(1:13, scoreProbs(mvR3)[,1], col = myhcl[2])
-%% #lines(1:13, scoreProbs(mv3)[,1], col = myhcl[3])
-%% #lines(1:13, scoreProbs(mv3)[,2], col = myhcl[3])
-%% #lines(1:13, scoreProbs(mv3)[,3], col = myhcl[3])
 
-The respondents in this study are thus not scalable to one single Rasch-scale 
-but instead need several scales to represent them accurately. A Rasch mixture
-model with a restricted score distribution is used to estimate the number of 
-latent classes. Given that number of classes, any type of score model is 
-conceivable. Here, the various versions are all fairly similar and the
-restricted mean-variance specification is chosen based on likelihood ratio
+Therefore, not just a single item or a small number of items have DIF but the
+underlying want/do relationship of the items is different across the three
+classes. This instrument thus works differently as a whole across classes.
+
+In summary, the respondents in this study are not scalable to one single 
+Rasch-scale but instead need several scales to represent them accurately. A 
+Rasch mixture model with a restricted score distribution is used to estimate the
+number of latent classes. Given that number of classes, any type of score model 
+is conceivable. Here, the various versions are all fairly similar and the
+restricted mean-variance specification is chosen based on likelihood ratio 
 tests. Keep in mind that the resulting fits can be substantially different from
 each other as shown in the simulation study, in particular for the case of 
 impact between DIF classes. The latent classes estimated here differ mainly in 
-their preception of the type and the \dquote{want/do}-relationship of a verbally
+their perception of the type and the \dquote{want/do}-relationship of a verbally
 aggressive response.
 
+%\pagebreak
 
 \section{Conclusion}\label{sec:conclusion}
 
 Unlike in a single Rasch model, item parameter estimation is not independent of 
-the score distribtution in Rasch mixture models. The saturated and mean-variance
+the score distribution in Rasch mixture models. The saturated and mean-variance
 specification of the score model are both well-established. A further option is
-the new restricted score specification introduced here. In the context of 
-testing for DIF, only the restricted score specification should be used as it 
-prevents confounding effects of impact on DIF detection while exhibiting 
-detection power positively related to DIF effect size. Given the number of 
-latent classes, it may be useful to fit the other score models as well, as they
-might improve estimation of group membership and therefore estimation of the 
-item parameters. The best fitting model can be selected 
-via the likelihood ratio test or an information criterion such as the BIC. This
-approach enhances the suitability of the Rasch mixture model as a tool for DIF 
-detection as additional infomation contained in the score distribution is only 
-employed if it contributes to the estimation of latent classes based on
-measurement invariance.
+the new restricted score specification introduced here. In the context of DIF
+detection, only the restricted score specification should be used as it prevents
+confounding effects of impact on DIF detection while exhibiting hit rates
+positively related to DIF effect size. Given the number of latent classes, it
+may be useful to fit the other score models as well, as they might improve
+estimation of group membership and therefore estimation of the item parameters.
+The best fitting model can be selected via the likelihood ratio test or an 
+information criterion such as the BIC. This approach enhances the suitability 
+of the Rasch mixture model as a tool for DIF detection as additional information
+contained in the score distribution is only employed if it contributes to the 
+estimation of latent classes based on measurement invariance.
 
+%% move this section to comments for a pkg release?
+\section*{Computational details}
 
-%% \section*{Computational details}
+<<sessionInfo, echo = FALSE>>=
+session <- sessionInfo()
+Rversion <- paste(session$R.version$major, session$R.version$minor, sep = ".")
+psyversion <- session$otherPkgs$psychomix$Version
+@ 
 
-%% An implementation of all versions of the Rasch mixture model mentioned here is 
-%% freely available under the General Pulic License in the \proglang{R} package 
-%% \pkg{psychomix} from the Comprehensive \proglang{R} Archive Network.
-%% Accompanying the package at \url{http://CRAN.R-project.org/package=psychomix} 
-%% is a vignette containing the simulation results and a replication of the verbal
-%% aggression example. 
+An implementation of all versions of the Rasch mixture model mentioned here is 
+freely available under the General Public License in the \proglang{R} package 
+\pkg{psychomix} from the Comprehensive \proglang{R} Archive Network.
+Accompanying the package at \url{http://CRAN.R-project.org/package=psychomix} 
+is a dataset containing all the simulation results which were generated using 
+\proglang{R} version~3.0.2, \pkg{psychomix} version~1.1-0, and \pkg{clv} 
+version~0.3-2. This vignette was generated with \proglang{R} 
+version~\Sexpr{Rversion}, and \pkg{psychomix} version~\Sexpr{psyversion}.
+
 
 
 \section*{Acknowledgments}
@@ -1638,6 +1817,181 @@ UniInfrastrukturprogramm of the Focal Point Scientific Computing at
 Universit{\"a}t Innsbruck.
 
 \nocite{psychomix:Fischer+Molenaar:1995}
+\nocite{psychomix:Wainer+Braun:1988}
 \bibliography{psychomix}
 
 \end{document}
+
+
+%% \begin{appendix}
+  
+%% \section{Web appendix}
+%% \label{sec:appendix}
+
+%% This web appendix provides the tables underlying the figures from the main
+%% manuscript. \emph{It is intended for the online supplements only (i.e., not for printing).}
+
+%% \begin{table}[h!]
+%%   \centering
+  
+%% <<A:DIF, echo = FALSE, results = tex, eval = FALSE>>=
+%% # library("xtable")
+%% sc2all <- subset(scoresim, theta == 0, select = c("delta", "theta", "scores", "prop23"))
+
+%% sc2 <- subset(sc2all, scores == "saturated", select = c("delta", "theta"))
+%% sc2$saturated <- subset(sc2all, scores == "saturated")$prop23*100
+%% sc2$meanvar <- subset(sc2all, scores == "meanvar")$prop23*100
+%% sc2$restricted <- subset(sc2all, scores == "restricted")$prop23*100
+
+%% colnames(sc2) <- c("$\\Delta$", "$\\Theta$", "Saturated", "Mean-variance", "Restricted")
+%% rownames(sc2) <- NULL
+
+%% print(xtable(sc2, digits = 1, align = "rccrrr"), include.rownames = FALSE, sanitize.text.function = function(x){x}, floating = FALSE)
+%% @
+%%   \caption{Proportion of choosing more than one latent class (in \%). Scenario 2: DIF without impact.}
+%%   \label{app:scenario2}
+
+%% \bigskip
+
+%% <<A:Impact, echo = FALSE, results = tex, eval = FALSE>>=
+%% sc3all <- subset(scoresim, delta == 0, select = c("delta", "theta", "scores", "prop23"))
+
+%% sc3 <- subset(sc3all, scores == "saturated", select = c("delta", "theta"))
+%% sc3$saturated <- subset(sc3all, scores == "saturated")$prop23*100
+%% sc3$meanvar <- subset(sc3all, scores == "meanvar")$prop23*100
+%% sc3$restricted <- subset(sc3all, scores == "restricted")$prop23*100
+              
+%% colnames(sc3) <- c("$\\Delta$", "$\\Theta$", "Saturated", "Mean-variance", "Restricted")
+%% rownames(sc3) <- NULL
+
+%% print(xtable(sc3, digits = 1, align = "rccrrr"), include.rownames = FALSE, sanitize.text.function = function(x){x}, floating = FALSE)
+%% @ 
+%%   \caption{Proportion of choosing more than one latent class (in \%). Scenario 3: Impact without DIF.}
+%%   \label{app:scenario3}
+%% \end{table}
+
+
+%% <<A:notCoinciding, echo = FALSE, results = tex, eval = FALSE>>=
+%% ## impact == 2.4
+%% sc4all <- subset(scoresim, theta == 2.4 & (scenario == 4 | delta == 0), select = c("delta", "theta", "scores", "prop23"))
+
+%% sc4 <- subset(sc4all, scores == "saturated", select = c("delta", "theta"))
+%% sc4$saturated <- subset(sc4all, scores == "saturated")$prop23*100
+%% sc4$meanvar <- subset(sc4all, scores == "meanvar")$prop23*100
+%% sc4$restricted <- subset(sc4all, scores == "restricted")$prop23*100
+
+%% ## impact == 3.6
+%% sc4all <- subset(scoresim, theta == 3.6 & (scenario == 4 | delta == 0), select = c("delta", "theta", "scores", "prop23"))
+
+%% sc4.36 <- subset(sc4all, scores == "saturated", select = c("delta", "theta"))
+%% sc4.36$saturated <- subset(sc4all, scores == "saturated")$prop23*100
+%% sc4.36$meanvar <- subset(sc4all, scores == "meanvar")$prop23*100
+%% sc4.36$restricted <- subset(sc4all, scores == "restricted")$prop23*100
+
+%% ## combine
+%% sc4 <- rbind(sc4, sc4.36)
+
+%% colnames(sc4) <- c("$\\Delta$", "$\\Theta$", "Saturated", "Mean-variance", "Restricted")
+%% rownames(sc4) <- NULL
+
+%% print(xtable(sc4, caption = "Proportion of choosing more than one latent class (\\%). Scenario 4: Impact and DIF, not coinciding.", label = "app:scenario4", digits = 1, align = "rccrrr"), include.rownames = FALSE, sanitize.text.function = function(x){x}, table.placement = "p!")
+%% @ 
+
+
+%% <<A:Overselection, echo = FALSE, results = tex, eval = FALSE>>=
+%% over <- subset(scoresim, theta == 3.6 & scores == "meanvar", select = c("delta", "theta", "scenario", "prop2", "prop3"))
+
+%% over$prop2 <- over$prop2*100
+%% over$prop3 <- over$prop3*100
+
+%% over$scenario[over$delta == 0] <- NA
+%% over$scenario <- factor(over$scenario, levels = 4:5, labels = c("not coinciding", "coinciding"))
+
+%% colnames(over) <- c("$\\Delta$", "$\\Theta$", "Groups", "Correct selection", "Overselection")
+%% rownames(over) <- NULL
+
+%% print(xtable(over, caption = "Proportions of selecting the correct number of classes and overselecting the number of classes (in \\%). Impact~$\\Theta~=~3.6$. Score model: mean-variance.", label = "app:overselection", digits = 1, align = "rcccrr"), include.rownames = FALSE, sanitize.text.function = function(x){x}, table.placement = "p!")
+%% @ 
+
+
+%% <<A:coinciding, echo = FALSE, results = tex, eval = FALSE>>=
+%% ## impact == 2.4
+%% sc5all <- subset(scoresim, theta == "2.4" & (scenario == 5 | delta == 0), select = c("delta", "theta", "scores", "prop23"))
+
+%% sc5 <- subset(sc5all, scores == "saturated", select = c("delta", "theta"))
+%% sc5$saturated <- subset(sc5all, scores == "saturated")$prop23*100
+%% sc5$meanvar <- subset(sc5all, scores == "meanvar")$prop23*100
+%% sc5$restricted <- subset(sc5all, scores == "restricted")$prop23*100
+
+%% ## impact == 3.6
+%% sc5all <- subset(scoresim, theta == 3.6 & (scenario == 5 | delta == 0), select = c("delta", "theta", "scores", "prop23"))
+
+%% sc5.36 <- subset(sc5all, scores == "saturated", select = c("delta", "theta"))
+%% sc5.36$saturated <- subset(sc5all, scores == "saturated")$prop23*100
+%% sc5.36$meanvar <- subset(sc5all, scores == "meanvar")$prop23*100
+%% sc5.36$restricted <- subset(sc5all, scores == "restricted")$prop23*100
+
+%% ## combine
+%% sc5 <- rbind(sc5, sc5.36)
+
+%% colnames(sc5) <- c("$\\Delta$", "$\\Theta$", "Saturated", "Mean-variance", "Restricted")
+%% rownames(sc5) <- NULL
+
+%% print(xtable(sc5, caption = "Proportion of choosing more than one latent class (in \\%). Scenario 5: Impact and DIF, coinciding.", label = "app:scenario5", digits = 1, align = "rccrrr"), include.rownames = FALSE, sanitize.text.function = function(x){x}, table.placement = "p!")
+%% @ 
+
+
+%% <<A:notCoinciding:Rand, echo = FALSE, results = tex, eval = FALSE>>=
+%% ## impact == 0.4
+%% sc4all <- subset(scoresim, theta == 0.4 & scenario == 4, select = c("delta", "theta", "scores", "rand2"))
+
+%% sc4 <- subset(sc4all, scores == "saturated", select = c("delta", "theta"))
+%% sc4$saturated <- subset(sc4all, scores == "saturated")$rand2*100
+%% sc4$meanvar <- subset(sc4all, scores == "meanvar")$rand2*100
+%% sc4$restricted <- subset(sc4all, scores == "restricted")$rand2*100
+
+%% ## impact == 3.6
+%% sc4all <- subset(scoresim, theta == 3.6 & scenario == 4, select = c("delta", "theta", "scores", "rand2"))
+
+%% sc4.36 <- subset(sc4all, scores == "saturated", select = c("delta", "theta"))
+%% sc4.36$saturated <- subset(sc4all, scores == "saturated")$rand2*100
+%% sc4.36$meanvar <- subset(sc4all, scores == "meanvar")$rand2*100
+%% sc4.36$restricted <- subset(sc4all, scores == "restricted")$rand2*100
+
+%% ## combine
+%% sc4 <- rbind(sc4, sc4.36)
+
+%% colnames(sc4) <- c("$\\Delta$", "$\\Theta$", "Saturated", "Mean-variance", "Restricted")
+%% rownames(sc4) <- NULL
+
+%% print(xtable(sc4, caption = "Rand index (in \\%). Scenario 4: Impact and DIF, not coinciding.", label = "app:scenario4:Rand", digits = 1, align = "rccrrr"), include.rownames = FALSE, sanitize.text.function = function(x){x}, table.placement = "p!")
+%% @ 
+
+
+%% <<A:coinciding:Rand, echo = FALSE, results = tex, eval = FALSE>>=
+%% ## impact == 0.4
+%% sc5all <- subset(scoresim, theta == "0.4" & scenario == 5, select = c("delta", "theta", "scores", "rand2"))
+
+%% sc5 <- subset(sc5all, scores == "saturated", select = c("delta", "theta"))
+%% sc5$saturated <- subset(sc5all, scores == "saturated")$rand2*100
+%% sc5$meanvar <- subset(sc5all, scores == "meanvar")$rand2*100
+%% sc5$restricted <- subset(sc5all, scores == "restricted")$rand2*100
+
+%% ## impact == 3.6
+%% sc5all <- subset(scoresim, theta == 3.6 & scenario == 5, select = c("delta", "theta", "scores", "rand2"))
+
+%% sc5.36 <- subset(sc5all, scores == "saturated", select = c("delta", "theta"))
+%% sc5.36$saturated <- subset(sc5all, scores == "saturated")$rand2*100
+%% sc5.36$meanvar <- subset(sc5all, scores == "meanvar")$rand2*100
+%% sc5.36$restricted <- subset(sc5all, scores == "restricted")$rand2*100
+
+%% ## combine
+%% sc5 <- rbind(sc5, sc5.36)
+
+%% colnames(sc5) <- c("$\\Delta$", "$\\Theta$", "Saturated", "Mean-variance", "Restricted")
+%% rownames(sc5) <- NULL
+
+%% print(xtable(sc5, caption = "Rand index (in \\%). Scenario 5: Impact and DIF, coinciding.", label = "app:scenario5:Rand", digits = 1, align = "rccrrr"), include.rownames = FALSE, sanitize.text.function = function(x){x}, table.placement = "p!")
+%% @ 
+
+%% \end{appendix}

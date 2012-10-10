@@ -3,14 +3,17 @@ raschmix <- function(formula, data, k, subset, weights,
                      scores = c("saturated", "meanvar"), restricted = FALSE,
                      nrep = 3, cluster = NULL, control = NULL,
                      verbose = TRUE, drop = TRUE, unique = FALSE, which = NULL,
-		     gradtol = 1e-6, deriv = "sum", hessian = FALSE, restart = TRUE,
-		     model = NULL, ...){  
+		     reltol = 1e-10, deriv = "sum", hessian = FALSE, restart = TRUE,
+		     model = NULL, gradtol = reltol, ...){  
   ## process call
   cl <- match.call()
   has_subset <- !missing(subset)
   has_weights <- !missing(weights)
   scores <- match.arg(head(tolower(scores), 1L), c("saturated", "meanvar", "constant"))
   misRes <- missing(restricted)
+  
+  ## gradtol renamed reltol in RaschModel.fit()
+  if(missing(reltol) && !missing(gradtol) && !is.null(gradtol)) reltol <- gradtol
 
   ## arrange formula and data arguments correctly
   if(missing(formula)) {
@@ -130,7 +133,7 @@ raschmix <- function(formula, data, k, subset, weights,
 
   ## Rasch driver including score model
   if(is.null(model)) model <- FLXMCrasch(scores = scores, delta = delta, ref = ref,
-     nonExtremeProb = pi.nonex, gradtol = gradtol, deriv = deriv, hessian = hessian,
+     nonExtremeProb = pi.nonex, reltol = reltol, deriv = deriv, hessian = hessian,
      restart = restart)
 
   ## control parameters
@@ -227,7 +230,7 @@ raschmix <- function(formula, data, k, subset, weights,
 
 ## Flexmix driver for Rasch mixture model
 FLXMCrasch <- function(formula = . ~ ., scores = "saturated", delta = NULL,
-  nonExtremeProb = 1, ref = 1, gradtol = 1e-6, deriv = "sum", hessian = FALSE, restart = TRUE, ...)
+  nonExtremeProb = 1, ref = 1, reltol = 1e-10, deriv = "sum", hessian = FALSE, restart = TRUE, ...)
 {
   scores <- match.arg(scores, c("saturated", "meanvar", "constant"))
 
@@ -264,7 +267,7 @@ FLXMCrasch <- function(formula = . ~ ., scores = "saturated", delta = NULL,
     }
     
     ## estimate parameters
-    rasch.model <- RaschModel.fit(y, weights = w, gradtol = gradtol,
+    rasch.model <- RaschModel.fit(y, weights = w, reltol = reltol,
       deriv = deriv, hessian = hessian, start = start, ...)
 
     ## # number of items and observations

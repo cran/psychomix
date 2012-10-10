@@ -1,7 +1,7 @@
 
-R version 3.0.2 (2013-09-25) -- "Frisbee Sailing"
-Copyright (C) 2013 The R Foundation for Statistical Computing
-Platform: i486-pc-linux-gnu (32-bit)
+R version 3.1.1 (2014-07-10) -- "Sock it to Me"
+Copyright (C) 2014 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -60,38 +60,31 @@ Loading required package: psychotools
 > 
 > ### ** Examples
 > 
-> ## data on party preferences in Germany
-> ## (omit single observation with education = 1)
-> data("GermanParties2009", package = "psychotools")
-> gp <- subset(GermanParties2009, education != "1")
-> gp$education <- factor(gp$education)
-> 
-> ## fit Bradley-Terry mixture, see ?btmix for more details
-> ## and a fully-worked example
-> set.seed(2)
-> cm4 <- btmix(preference ~ gender + education + age + crisis, data = gp, k = 4, nrep = 1)
-4 : *
-> 
-> ## inspect mixture and effects
-> library("lattice")
-> xyplot(cm4)
-> effectsplot(cm4)
-Loading required package: effects
-Loading required package: grid
-Loading required package: colorspace
-Loading required package: nnet
-> 
-> ## effect of education
-> eff4 <- allEffects(cm4)
-> effectsplot(eff4, selection = "education")
+> ## Not run: 
+> ##D ## data on party preferences in Germany
+> ##D ## (omit single observation with education = 1)
+> ##D data("GermanParties2009", package = "psychotools")
+> ##D gp <- subset(GermanParties2009, education != "1")
+> ##D gp$education <- factor(gp$education)
+> ##D 
+> ##D ## fit Bradley-Terry mixture, see ?btmix for more details
+> ##D ## and a fully-worked example
+> ##D set.seed(2)
+> ##D cm4 <- btmix(preference ~ gender + education + age + crisis, data = gp, k = 4, nrep = 1)
+> ##D 
+> ##D ## inspect mixture and effects
+> ##D library("lattice")
+> ##D xyplot(cm4)
+> ##D effectsplot(cm4)
+> ##D 
+> ##D ## effect of education
+> ##D eff4 <- allEffects(cm4)
+> ##D effectsplot(eff4, selection = "education")
+> ## End(Not run)
 > 
 > 
 > 
 > cleanEx()
-
-detaching ‘package:nnet’, ‘package:effects’, ‘package:colorspace’,
-  ‘package:grid’
-
 > nameEx("raschmix")
 > ### * raschmix
 > 
@@ -133,16 +126,16 @@ Comp.2   0.5  819   1284 0.638
 
 Item Parameters:
            Comp.1     Comp.2
-Item01  2.6259637 -2.5473711
-Item02  2.1238467 -2.1065253
-Item03  1.3804504 -1.6724684
-Item04  0.8532012 -1.0300711
-Item05  0.3131431 -0.2238819
-Item06 -0.2936236  0.2739328
-Item07 -0.8695518  0.9565317
-Item08 -1.4456268  1.5520442
-Item09 -2.0528887  2.0682427
-Item10 -2.6349142  2.7295666
+Item01  2.6259651 -2.5473708
+Item02  2.1238482 -2.1065270
+Item03  1.3804502 -1.6724719
+Item04  0.8532003 -1.0300670
+Item05  0.3131440 -0.2238842
+Item06 -0.2936246  0.2739371
+Item07 -0.8695492  0.9565315
+Item08 -1.4456305  1.5520418
+Item09 -2.0528893  2.0682463
+Item10 -2.6349141  2.7295642
 
 'log Lik.' -8829.039 (df=35)
 AIC: 17728.08   BIC: 17917.35 
@@ -349,7 +342,7 @@ AIC: 17728.08   BIC: 17917.35
 > ###
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  18.104 0.04 18.625 0 0 
+Time elapsed:  3.724 0.012 3.74 0 0 
 > grDevices::dev.off()
 null device 
           1 

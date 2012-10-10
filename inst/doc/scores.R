@@ -10,7 +10,22 @@ cache <- FALSE
 
 
 ###################################################
-### code chunk number 2: simPrep
+### code chunk number 2: fig-simD-motiv
+###################################################
+mygrays <- gray.colors(2)
+par(mar = c(0.1, 6, 3, 0.1), las = 1)
+plot(0, 0, xlim = c(-0.2, 3), ylim = c(0.2, 1.8), type = "n", axes = FALSE, xlab = "", ylab = "")
+points(rep(c(0 + 0:3/5.5, 1 + 0:3/5.5), 2), rep(c(1.5, 0.5), each = 8), pch = 21,
+  bg = mygrays[c(rep(1, 4), rep(2, 4), 1, 2, 1, 2, 2, 2, 1, 1)], cex = 2)
+axis(2, at = c(1.5, 0.5), c("Coinciding", "Not coinciding"), lwd = 0, pos = -0.2, line = 0)
+axis(3, at = c(0, 1), c("School type I\n(low ability)", "School type II\n(high ability)"),
+  lwd = 0, hadj = 0)
+legend(2, 1.7, c("standard", "specialized"), title = "Course type\n(source of DIF)",
+  pch = 21, pt.bg = mygrays, bty = "n", title.adj = 0)
+
+
+###################################################
+### code chunk number 3: simPrep
 ###################################################
 ## function to generate a design-list for simRaschmix()
 generateDesign <- function(nobs = 500, m = 20, weights = NULL,
@@ -32,7 +47,7 @@ generateDesign <- function(nobs = 500, m = 20, weights = NULL,
   ability <- if(ab.dist == "fix"){
     array(c(rbind(ab, 1)), dim = c(1,2,4)) # 1 = rel.frequency in sample()
   } else {
-    rbind(ab, 0.5) ## 0.5 = sd for rnorm()
+    rbind(ab, 0.3) ## 0.3 = sd for rnorm()
   }
 
   ## difficulty
@@ -71,18 +86,18 @@ myhcl <- psychomix:::qualitative_hcl(3)
 
 ## load simulated data
 load("scoresim.rda")
-scoresim$prop23 <-  1 - scoresim$prop1
+scoresim$prop23 <- 1 - scoresim$prop1
 
 
 ###################################################
-### code chunk number 3: fig-simD-DIFhomo
+### code chunk number 4: fig-simD-DIFhomo
 ###################################################
 ## frame
 par(mfrow = c(1,2))
 par(mar = c(2, 4, 2, 2) + 0.1) # c(bottom, left, top, right)
 
 ## only DIF
-des <- generateDesign(ab = 0, dif = 2)
+des <- generateDesign(ab = 0, dif = 2, ab.dist = "normal")
 set.seed(1)
 dat <- simRaschmix(des)
 rs <- rowSums(dat)
@@ -97,14 +112,14 @@ stacked_bars(rs, cl, max = 20, ylab = "Score frequencies")
 
 
 ###################################################
-### code chunk number 4: fig-simD-noDIFhet
+### code chunk number 5: fig-simD-noDIFhet
 ###################################################
 ## frame
 par(mfrow = c(1, 2))
 par(mar = c(2, 4, 2, 2) + 0.1) 
 
 ## only heterogeneous abilities
-des <- generateDesign(ab = 1, dif = 0) ## ab = 1 --> impact = 2
+des <- generateDesign(ab = 1, dif = 0, ab.dist = "normal") ## ab = 1 --> impact = 2
 set.seed(1)
 dat <- simRaschmix(des)
 rs <- rowSums(dat)
@@ -119,7 +134,7 @@ par(mfrow = c(1, 1))
 
 
 ###################################################
-### code chunk number 5: fig-simD-DIFhet
+### code chunk number 6: fig-simD-DIFhet
 ###################################################
 ## frame
 par(mfrow = c(1,2))
@@ -127,7 +142,7 @@ par(mar = c(2, 4, 2, 2) + 0.1)
 
 ## designs:
 ## heterogeneous abilities within DIF groups
-des <- generateDesign(ab = 1.0, dif = 2, coincide = FALSE) ## ab = 1 --> impact = 2
+des <- generateDesign(ab = 1.0, dif = 2, coincide = FALSE, ab.dist = "normal") ## ab = 1 --> impact = 2
 set.seed(1)
 dat <- simRaschmix(des)
 rs <- rowSums(dat)
@@ -137,7 +152,7 @@ ip <- attr(dat, "difficulty")[,2:3]
 stacked_bars(rs, cl, max = 20, ylab = "Score frequencies", xlab = "")
 
 ## heterogeneous abilities between DIF groups
-des <- generateDesign(ab = 1.0, dif = 2, coincide = TRUE) ## ab = 1 --> impact = 2
+des <- generateDesign(ab = 1.0, dif = 2, coincide = TRUE, ab.dist = "normal") ## ab = 1 --> impact = 2
 set.seed(1)
 dat <- simRaschmix(des)
 rs <- rowSums(dat)
@@ -150,7 +165,7 @@ par(mfrow = c(1,1))
 
 
 ###################################################
-### code chunk number 6: fig-simR-DIFhomo
+### code chunk number 7: fig-simR-DIFhomo
 ###################################################
 par(mar = c(4, 4, 2, 2) + 0.1)
 
@@ -169,7 +184,7 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 
 
 ###################################################
-### code chunk number 7: fig-simR-noDIFhet
+### code chunk number 8: fig-simR-noDIFhet
 ###################################################
 par(mar = c(4, 4, 2, 2) + 0.1)
 
@@ -188,43 +203,27 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 
 
 ###################################################
-### code chunk number 8: fig-simR-DIFhetWithin
+### code chunk number 9: fig-simR-DIFhetWithin
 ###################################################
-par(mfrow = c(1, 3))
-layout(matrix(c(rep(1,5), rep(2,4), rep(3,5)), nrow = 1, byrow = TRUE))
+par(mfrow = c(1, 2))
+layout(matrix(c(rep(1,4), rep(2,4)), nrow = 1, byrow = TRUE))
 
-## impact = 0.4
+## impact = 2.4
 par(mar = c(5, 4, 4, 0.5) + 0.1)
 plot(prop23 ~ delta, data = scoresim, 
-  subset = theta == 0.4 & scores == "saturated" & (scenario == 4 | delta == 0), 
-  main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
+  subset = theta == 2.4 & scores == "saturated" & (scenario == 4 | delta == 0), 
+  main = expression(paste("Impact ", Theta, " = 2.4", sep = "")),
   ylim = c(0,1), type = "b", 
   xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "Choose more than 1 latent class", col = myhcl[3], lty = 3, pch = 3)
 lines(prop23 ~ delta, 
-  data = scoresim, subset = theta == 0.4 & scores == "meanvar" & (scenario == 4 | delta == 0), 
+  data = scoresim, subset = theta == 2.4 & scores == "meanvar" & (scenario == 4 | delta == 0), 
   type = "b", col = myhcl[2], lty = 1, pch = 1)
 lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 0.4 & scores == "restricted" & (scenario == 4 | delta == 0),
+  subset = theta == 2.4 & scores == "restricted" & (scenario == 4 | delta == 0),
   type = "b", col = myhcl[1], lty = 2, pch = 6)
 legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
   col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
-                
-## impact = 2.0
-par(mar = c(5, 0.5, 4, 0.5) + 0.1) # c(bottom, left, top, right)
-plot(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "saturated" & (scenario == 4 | delta == 0), 
-  main = expression(paste("Impact ", Theta, " = 2.0", sep = "")),
-  ylim = c(0,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
-  ylab = "", col = myhcl[3], lty = 3, pch = 3)
-box(); axis(1)
-lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "meanvar" & (scenario == 4 | delta == 0), 
-  type = "b", col = myhcl[2], lty = 1, pch = 1)
-lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "restricted" & (scenario == 4 | delta == 0),
-  type = "b", col = myhcl[1], lty = 2, pch = 6)
 
 ## impact = 3.6
 par(mar = c(5, 0.5, 4, 4) + 0.1) # c(bottom, left, top, right)
@@ -246,7 +245,7 @@ par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1,1)) ## restore default
 
 
 ###################################################
-### code chunk number 9: fig-simR-prop23
+### code chunk number 10: fig-simR-prop23
 ###################################################
 par(mar = c(4, 4, 4, 2) + 0.1)
 
@@ -279,43 +278,27 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 
 
 ###################################################
-### code chunk number 10: fig-simR-DIFhetBetween
+### code chunk number 11: fig-simR-DIFhetBetween
 ###################################################
-par(mfrow = c(1, 3))
-layout(matrix(c(rep(1,5), rep(2,4), rep(3,5)), nrow = 1, byrow = TRUE))
+par(mfrow = c(1, 2))
+layout(matrix(c(rep(1,4), rep(2,4)), nrow = 1, byrow = TRUE))
 
-## impact = 0.4
+## impact = 2.4
 par(mar = c(5, 4, 4, 0.5) + 0.1)
 plot(prop23 ~ delta, data = scoresim, 
-  subset = theta == 0.4 & scores == "saturated" & (scenario == 5 | delta == 0), 
-  main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
+  subset = theta == "2.4" & scores == "saturated" & (scenario == 5 | delta == 0), 
+  main = expression(paste("Impact ", Theta, " = 2.4", sep = "")),
   ylim = c(0,1), type = "b", 
   xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "Choose more than 1 latent class", col = myhcl[3], lty = 3, pch = 3)
 lines(prop23 ~ delta, 
-  data = scoresim, subset = theta == 0.4 & scores == "meanvar" & (scenario == 5 | delta == 0), 
+  data = scoresim, subset = theta == "2.4" & scores == "meanvar" & (scenario == 5 | delta == 0), 
   type = "b", col = myhcl[2], lty = 1, pch = 1)
 lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 0.4 & scores == "restricted" & (scenario == 5 | delta == 0),
+  subset = theta == "2.4" & scores == "restricted" & (scenario == 5 | delta == 0),
   type = "b", col = myhcl[1], lty = 2, pch = 6)
-legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
-  col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
-
-## impact = 2.0
-par(mar = c(5, 0.5, 4, 0.5) + 0.1) # c(bottom, left, top, right)
-plot(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "saturated" & (scenario == 5 | delta == 0), 
-  main = expression(paste("Impact ", Theta, " = 2.0", sep = "")),
-  ylim = c(0,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
-  ylab = "", col = myhcl[3], lty = 3, pch = 3)
-box(); axis(1)
-lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "meanvar" & (scenario == 5 | delta == 0), 
-  type = "b", col = myhcl[2], lty = 1, pch = 1)
-lines(prop23 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "restricted" & (scenario == 5 | delta == 0),
-  type = "b", col = myhcl[1], lty = 2, pch = 6)
+## legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
+##   col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
 
 ## impact = 3.6
 par(mar = c(5, 0.5, 4, 4) + 0.1) # c(bottom, left, top, right)
@@ -332,23 +315,27 @@ lines(prop23 ~ delta, data = scoresim,
 lines(prop23 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "restricted" & (scenario == 5 | delta == 0),
   type = "b", col = myhcl[1], lty = 2, pch = 6)
+legend("bottomright", legend = c("saturated", "mean-variance", "restricted"), 
+  col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
 
 par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1,1)) ## restore default
 
 
 ###################################################
-### code chunk number 11: fig-simR-DIFhetWithinRand2
+### code chunk number 12: fig-simR-Rand
 ###################################################
-par(mfrow = c(1, 3))
-layout(matrix(c(rep(1,5), rep(2,4), rep(3,5)), nrow = 1, byrow = TRUE))
+par(mar = c(5, 4, 4, 2) + 0.1) # c(bottom, left, top, right)
+#par(mfrow = c(2, 2))
+layout(matrix(rep(1:4, each = 4), nrow = 2, byrow = TRUE))
 
-#par(mar = c(5, 4, 4, 6) + 0.1) # c(bottom, left, top, right)
-par(mar = c(5, 4, 4, 0.5) + 0.1)
+## scenario 4
+## impact = 0.4
+par(mar = c(1.5, 4, 4, 0.5) + 0.1)
 plot(rand2 ~ delta, data = scoresim, 
   subset = theta == 0.4 & scores == "saturated" & scenario == 4 & delta > 0, 
   main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
   ylim = c(0.5,1), type = "b", 
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
+  xlab = "", #expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "Rand index", col = myhcl[3], lty = 3, pch = 3)
 lines(rand2 ~ delta, 
   data = scoresim, subset = theta == 0.4 & scores == "meanvar" & scenario == 4 & delta > 0, 
@@ -359,27 +346,13 @@ lines(rand2 ~ delta, data = scoresim,
 legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
   col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
                                         
-par(mar = c(5, 0.5, 4, 0.5) + 0.1) # c(bottom, left, top, right)
-plot(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "saturated" & scenario == 4 & delta > 0, 
-  main = expression(paste("Impact ", Theta, " = 2.0", sep = "")),
-  ylim = c(0.5,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
-  ylab = "", col = myhcl[3], lty = 3, pch = 3)
-box(); axis(1)
-lines(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "meanvar" & scenario == 4 & delta > 0, 
-  type = "b", col = myhcl[2], lty = 1, pch = 1)
-lines(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "restricted" & scenario == 4 & delta > 0,
-  type = "b", col = myhcl[1], lty = 2, pch = 6)
-
-par(mar = c(5, 0.5, 4, 4) + 0.1) # c(bottom, left, top, right)
+## impact = 3.6
+par(mar = c(1.5, 0.5, 4, 4) + 0.1)
 plot(rand2 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "saturated" & scenario == 4 & delta > 0, 
   main = expression(paste("Impact ", Theta, " = 3.6", sep = "")),
   ylim = c(0.5,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
+  xlab = "", #expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "", col = myhcl[3], lty = 3, pch = 3)
 box(); axis(1)
 lines(rand2 ~ delta, data = scoresim, 
@@ -388,21 +361,14 @@ lines(rand2 ~ delta, data = scoresim,
 lines(rand2 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "restricted" & scenario == 4 & delta > 0,
   type = "b", col = myhcl[1], lty = 2, pch = 6)
+text(4.4, 0.65, "Scenario 4", pos = 4, srt = 90, xpd = TRUE)
 
-par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1,1)) ## restore default
-
-
-###################################################
-### code chunk number 12: fig-simR-DIFhetBetweenRand2
-###################################################
-par(mfrow = c(1, 3))
-layout(matrix(c(rep(1,5), rep(2,4), rep(3,5)), nrow = 1, byrow = TRUE))
-
-#par(mar = c(5, 4, 4, 6) + 0.1) # c(bottom, left, top, right)
-par(mar = c(5, 4, 4, 0.5) + 0.1)
+## scenario 5
+## impact = 0.4
+par(mar = c(5, 4, 1, 0.5) + 0.1)
 plot(rand2 ~ delta, data = scoresim, 
   subset = theta == 0.4 & scores == "saturated" & scenario == 5 & delta > 0, 
-  main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
+  #main = expression(paste("Impact ", Theta, " = 0.4", sep = "")),
   ylim = c(0.5,1), type = "b", 
   xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "Rand index", col = myhcl[3], lty = 3, pch = 3)
@@ -412,28 +378,13 @@ lines(rand2 ~ delta,
 lines(rand2 ~ delta, data = scoresim, 
   subset = theta == 0.4 & scores == "restricted" & scenario == 5 & delta > 0,
   type = "b", col = myhcl[1], lty = 2, pch = 6)
-legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
-  col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
-                                        
-par(mar = c(5, 0.5, 4, 0.5) + 0.1) # c(bottom, left, top, right)
-plot(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "saturated" & scenario == 5 & delta > 0, 
-  main = expression(paste("Impact ", Theta, " = 2.0", sep = "")),
-  ylim = c(0.5,1), type = "b", axes = FALSE,
-  xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
-  ylab = "", col = myhcl[3], lty = 3, pch = 3)
-box(); axis(1)
-lines(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "meanvar" & scenario == 5 & delta > 0, 
-  type = "b", col = myhcl[2], lty = 1, pch = 1)
-lines(rand2 ~ delta, data = scoresim, 
-  subset = theta == 2.0 & scores == "restricted" & scenario == 5 & delta > 0,
-  type = "b", col = myhcl[1], lty = 2, pch = 6)
-
-par(mar = c(5, 0.5, 4, 4) + 0.1) # c(bottom, left, top, right)
+#legend("topleft", legend = c("saturated", "mean-variance", "restricted"), 
+#  col = myhcl[3:1], lty = c(3,1,2), pch = c(3,1,6), bty = "n")
+ 
+par(mar = c(5, 0.5, 1, 4) + 0.1) # c(bottom, left, top, right)
 plot(rand2 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "saturated" & scenario == 5 & delta > 0, 
-  main = expression(paste("Impact ", Theta, " = 3.6", sep = "")),
+  #main = expression(paste("Impact ", Theta, " = 3.6", sep = "")),
   ylim = c(0.5,1), type = "b", axes = FALSE,
   xlab = expression(paste("DIF effect size (", Delta, ")", sep = "")),  
   ylab = "", col = myhcl[3], lty = 3, pch = 3)
@@ -444,6 +395,7 @@ lines(rand2 ~ delta, data = scoresim,
 lines(rand2 ~ delta, data = scoresim, 
   subset = theta == 3.6 & scores == "restricted" & scenario == 5 & delta > 0,
   type = "b", col = myhcl[1], lty = 2, pch = 6)
+text(4.4, 0.65, "Scenario 5", pos = 4, srt = 90, xpd = TRUE)
 
 par(mar = c(5, 4, 4, 2) + 0.1, mfrow = c(1,1)) ## restore default
 
@@ -485,12 +437,22 @@ mvR <- raschmix(resp2 ~ 1, data = va12, k = 1:4, scores = "meanvar",
 ###################################################
 ### code chunk number 16: VerbalLC
 ###################################################
-mvRbic <- round(BIC(mvR), digits = 1)
 mvR3 <- getModel(mvR, which = "BIC")
+clsizes <- table(clusters(mvR3))
 
 
 ###################################################
-### code chunk number 17: VerbalScoresFit0 (eval = FALSE)
+### code chunk number 17: VerbalTableK
+###################################################
+tabK <- data.frame(model = rep("restricted", 4),
+  k = sapply(mvR@models, function(x) x@k),
+  df = sapply(mvR@models, function(x) x@df),
+  logLik = sapply(mvR@models, function(x) x@logLik),
+  bic = sapply(mvR@models, BIC))
+
+
+###################################################
+### code chunk number 18: VerbalScoresFit0 (eval = FALSE)
 ###################################################
 ## ## fit all possible score models
 ## sat3 <- raschmix(resp2 ~ 1, data = va12, k = 3, scores = "saturated")
@@ -500,7 +462,7 @@ mvR3 <- getModel(mvR, which = "BIC")
 
 
 ###################################################
-### code chunk number 18: VerbalScoresFit
+### code chunk number 19: VerbalScoresFit
 ###################################################
 if(cache & file.exists("va12_m3.rda")){
     load("va12_m3.rda")
@@ -519,47 +481,15 @@ mv3 <- raschmix(resp2 ~ 1, data = va12, k = 3, scores = "meanvar")
 
 
 ###################################################
-### code chunk number 19: VerbalLRtest
+### code chunk number 20: VerbalTableS
 ###################################################
-## check which score model fits best
-library("lmtest")
-lrtest(sat3, mv3, mvR3)
-lrtest(sat3, satR3, mvR3)
-clsizes <- table(clusters(mvR3))
-
-
-###################################################
-### code chunk number 20: fig-verbalTest
-###################################################
-par(mar = rep(0, 4))
-
-node <- function(x, y, lab, eps = 0.11, col = mygrays[2]) {
-  polygon(x + c(-1, -1, 1, 1, -1) * eps, y + c(-1, 1, 1, -1, -1) * eps, col = col)
-  text(x, y, lab)
-}
-edge <- function(x1, y1, x2, y2, lab, eps = 0.13, length = 0.1, ...) {
-  if(x1 == x2) {
-    arrows(x1, y1 + eps, x2, y2 - eps, length = length, ...)
-    text(mean(c(x1, x2)), mean(c(y1, y2)), lab, pos = 2)
-  } else {
-    arrows(x1 + eps, y1, x2 - eps, y2, length = length, ...)  
-    text(mean(c(x1, x2)), mean(c(y1, y2)), lab, pos = 1)
-  }
-}
-
-plot(0, 0, xlim = c(0, 1), ylim = c(0, 1), type = "n", axes = FALSE, xlab = "", ylab = "")
-
-node(0.2, 0.2, sprintf("saturated\n(BIC: %s)", format(round(BIC(sat3), digits = 1), nsmall = 1)))
-node(0.2, 0.8, sprintf("saturated\nrestricted\n(BIC: %s)", format(round(BIC(satR3), digits = 1), nsmall = 1)))
-node(0.8, 0.2, sprintf("mean-variance\n(BIC: %s)", format(round(BIC(mv3), digits = 1), nsmall = 1)))
-node(0.8, 0.8, sprintf("mean-variance\nrestricted\n(BIC: %s)", format(round(BIC(mvR3), digits = 1), nsmall = 1)))
-
-edge(0.2, 0.2, 0.2, 0.8, format(round(lrtest(sat3, satR3)[2,5], digits = 3), nsmall = 3))
-edge(0.2, 0.8, 0.8, 0.8, format(round(lrtest(satR3, mvR3)[2,5], digits = 3), nsmall = 3))
-edge(0.2, 0.2, 0.8, 0.2, format(round(lrtest(sat3, mv3  )[2,5], digits = 3), nsmall = 3))
-edge(0.8, 0.2, 0.8, 0.8, format(round(lrtest(mv3 , mvR3 )[2,5], digits = 3), nsmall = 3))
-
-par(mar = c(5, 4, 4, 2) + 0.1)
+library("lmtest") ## for p-values in text
+tabS <- data.frame(model = c("saturated", "restricted (saturated)", 
+    "mean-variance", "restricted (mean-variance)"),
+  k = sapply(list(sat3, satR3, mv3, mvR3), function(x) x@k),
+  df = sapply(list(sat3, satR3, mv3, mvR3), function(x) x@df),
+  logLik = sapply(list(sat3, satR3, mv3, mvR3), function(x) x@logLik),
+  bic = sapply(list(sat3, satR3, mv3, mvR3), BIC))
 
 
 ###################################################
@@ -567,5 +497,13 @@ par(mar = c(5, 4, 4, 2) + 0.1)
 ###################################################
 trellis.par.set(theme = standard.theme(color = FALSE))
 xyplot(mvR3)
+
+
+###################################################
+### code chunk number 22: sessionInfo
+###################################################
+session <- sessionInfo()
+Rversion <- paste(session$R.version$major, session$R.version$minor, sep = ".")
+psyversion <- session$otherPkgs$psychomix$Version
 
 

@@ -14,11 +14,11 @@
 \usage{
 raschmix(formula, data, k, subset, weights, scores = c("saturated", "meanvar"),
   restricted = FALSE, nrep = 3, cluster = NULL, control = NULL, verbose = TRUE,
-  drop = TRUE, unique = FALSE, which = NULL, gradtol = 1e-6, deriv = "sum",
-  hessian = FALSE, restart = TRUE, model = NULL, \dots)
+  drop = TRUE, unique = FALSE, which = NULL, reltol = 1e-10, deriv = "sum",
+  hessian = FALSE, restart = TRUE, model = NULL, gradtol = reltol, \dots)
 
 FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb = 1,
-  ref = 1, gradtol = 1e-6, deriv = "sum", hessian = FALSE,
+  ref = 1, reltol = 1e-10, deriv = "sum", hessian = FALSE,
   restart = TRUE, \dots)
 }
 
@@ -37,7 +37,8 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
     separate parameter for each score probability, or, for \code{meanvar},
     a multinomial logit model with a location and a scale parameter.}
   \item{restricted}{Logical. Should the score distributions be
-    restricted to being equal across components?}
+    restricted to being equal across components? See Frick et al. (2014)
+    for details.}
   \item{nrep}{Number of runs for the starting values for the EM
     algorithm (if \code{cluster = "mrm"}) or number of runs of the EM
     algorithm itself.}
@@ -65,8 +66,9 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
   \item{nonExtremeProb}{A numeric giving the probability of scoring
     either none or all items.}
   \item{ref}{Reference category for the saturated score model.}
-  \item{gradtol, deriv, hessian}{Control parameters passed to
-    \code{\link[psychotools]{RaschModel.fit}} for the M-step.}
+  \item{reltol, gradtol, deriv, hessian}{Control parameters passed to
+    \code{\link[psychotools]{RaschModel.fit}} for the M-step. The \code{gradtol}
+    argument is deprecated and \code{reltol} should be used instead.}
   \item{restart}{Logical. Should the estimation of the item parameters
     be restarted in each iteration? If FALSE, the estimates from the
     previous M-step are used as starting values.}
@@ -81,7 +83,8 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
 
 \details{
   \code{raschmix} is intended as a convenience interface to the
-  \code{\link[flexmix]{stepFlexmix}} function. The formula argument of
+  \code{\link[flexmix]{stepFlexmix}} function from the \pkg{flexmix} package
+  (Leisch 2004, Grün and Leisch 2008). The formula argument of
   raschmix is used to describe the model in terms of both items and
   concomitant variables, if any. On the left-hand side of the formula
   the item are specified, either as a matrix \code{y} or as single items
@@ -98,7 +101,11 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
   Rasch mixture models.
   
   The Rasch mixture model with saturated score distribution as proposed
-  by Rost (1990) is also known as \dQuote{Mixed Rasch Model}.
+  by Rost (1990) is also known as \dQuote{Mixed Rasch Model}. The
+  mean-variance score distribution was suggested by Rost and von Davier
+  (1995). A more recent extension is the restricted score specification
+  by Frick et al. (2014) who also provide an extensive comparison using
+  Monte Carlo studies.
   
 }
 
@@ -116,6 +123,12 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
   Flexible Rasch Mixture Models with Package psychomix.
   \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
   \url{http://www.jstatsoft.org/v48/i07/}.
+
+  Frick, H., Strobl, C., and Zeileis, A. (2014).
+  Rasch Mixture Models for DIF Detection: A Comparison of Old and New
+  Score Specifications.
+  \emph{Educational and Psychological Measurement}, Forthcoming.
+  doi:10.1177/0013164414536183.
 
   Grün, B., and Leisch, F. (2008). FlexMix Version 2: Finite Mixtures
   with Concomitant Variables and Varying and Constant Parameters.

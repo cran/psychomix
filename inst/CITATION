@@ -1,4 +1,4 @@
-citHeader("To cite psychomix in publications use:")
+citHeader("To cite psychomix in publications please use:")
 
 citEntry(entry = "Article",
   title        = "Flexible Rasch Mixture Models with Package {psychomix}",
@@ -18,5 +18,24 @@ citEntry(entry = "Article",
         "Flexible Rasch Mixture Models with Package psychomix.",
         "Journal of Statistical Software, 48(7), 1-25.",
         "URL http://www.jstatsoft.org/v48/i07/.")
+)
+
+citEntry(entry = "Article",
+  title        = "{R}asch Mixture Models for {DIF} Detection: A Comparison of Old and New Score Specifications",
+  author       = personList(as.person("Hannah Frick"),
+                   as.person("Carolin Strobl"),
+                   as.person("Achim Zeileis")),
+  journal      = "Educational and Psychological Measurement",
+  year         = "2014",
+  note         = "Forthcoming",
+  doi          = "10.1177/0013164414536183",
+
+  textVersion  =
+  paste("Hannah Frick, Carolin Strobl, Achim Zeileis (2014).",
+        "Rasch Mixture Models for DIF Detection: A Comparison of Old and New Score Specifications.",
+        "Educational and Psychological Measurement, Forthcoming.",
+	"doi:10.1177/0013164414536183"),
+
+  header       = "If you use Rasch mixture models with a restricted score distribution, please additionally cite:"        
 )
 

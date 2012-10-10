@@ -59,6 +59,7 @@ effectsplot(object, \dots)
 }
 
 \examples{
+\dontrun{
 ## data on party preferences in Germany
 ## (omit single observation with education = 1)
 data("GermanParties2009", package = "psychotools")
@@ -78,6 +79,7 @@ effectsplot(cm4)
 ## effect of education
 eff4 <- allEffects(cm4)
 effectsplot(eff4, selection = "education")
+}
 }
 
 \keyword{hplot}
