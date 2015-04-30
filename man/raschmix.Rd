@@ -37,7 +37,7 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
     separate parameter for each score probability, or, for \code{meanvar},
     a multinomial logit model with a location and a scale parameter.}
   \item{restricted}{Logical. Should the score distributions be
-    restricted to being equal across components? See Frick et al. (2014)
+    restricted to being equal across components? See Frick et al. (2015)
     for details.}
   \item{nrep}{Number of runs for the starting values for the EM
     algorithm (if \code{cluster = "mrm"}) or number of runs of the EM
@@ -104,7 +104,7 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
   by Rost (1990) is also known as \dQuote{Mixed Rasch Model}. The
   mean-variance score distribution was suggested by Rost and von Davier
   (1995). A more recent extension is the restricted score specification
-  by Frick et al. (2014) who also provide an extensive comparison using
+  by Frick et al. (2015) who also provide an extensive comparison using
   Monte Carlo studies.
   
 }
@@ -124,10 +124,10 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
   \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
   \url{http://www.jstatsoft.org/v48/i07/}.
 
-  Frick, H., Strobl, C., and Zeileis, A. (2014).
+  Frick, H., Strobl, C., and Zeileis, A. (2015).
   Rasch Mixture Models for DIF Detection: A Comparison of Old and New
   Score Specifications.
-  \emph{Educational and Psychological Measurement}, Forthcoming.
+  \emph{Educational and Psychological Measurement}, \bold{75}(2), 208--234.
   doi:10.1177/0013164414536183.
 
   Grün, B., and Leisch, F. (2008). FlexMix Version 2: Finite Mixtures

@@ -5,6 +5,7 @@
 \alias{show,summary.raschmix-method}
 \alias{parameters,raschmix-method}
 \alias{worth,raschmix-method}
+\alias{itempar,raschmix-method}
 \alias{scoreProbs}
 
 \title{Methods for raschmix Objects}
@@ -19,6 +20,8 @@
        difficulty = TRUE, component = NULL, simplify = TRUE)
 
 \S4method{worth}{raschmix}(object, difficulty = TRUE, component = NULL)
+
+\S4method{itempar}{raschmix}(object, ref = NULL, alias = TRUE, ...)
 
 scoreProbs(object, component = NULL, simplify = TRUE)
 }
@@ -35,12 +38,24 @@ scoreProbs(object, component = NULL, simplify = TRUE)
     easiness parameters are used.}
   \item{component}{Indicates which components are returned. Default is
     all components.}
+  \item{ref}{a vector of labels or position indices of item parameters or
+    a contrast matrix which should be used as restriction/for
+    normalization. If 'NULL' (the default), all items are used (sum zero
+    restriction).}
+  \item{alias}{logical. If 'TRUE' (the default), the aliased parameter is
+    included in the return vector. If 'FALSE', it is removed. If the
+    restriction given in 'ref' depends on several parameters, the first
+    parameter of the restriction specified is (arbitrarily) chosen to be
+    removed if 'alias' is 'FALSE'.}
   \item{simplify}{Should the result be simplified if possible?}
   \item{...}{Currently not used.}
 }
 \details{
   \code{worth} transforms the item parameters so that the sum over all
   item parameters (within each component) is zero.
+
+  \code{itempar} allows for the flexible specification of the
+  restriction applied to the item parameters.
 
   \code{scoreProbs} does not include any aliased parameters if a certain
   raw score is not present in the data.

@@ -92,7 +92,7 @@ cache <- FALSE
 
 \begin{document}
 
-\vspace*{-0.35cm}
+%\vspace*{-0.35cm}
 
 \section{Introduction} \label{sec:intro}
 
@@ -199,7 +199,8 @@ behavior (Section~\ref{sec:application}). Concluding remarks are
 provided in Section~\ref{sec:summary}.
 
 
-\vspace*{-0.2cm}
+%\vspace*{-0.2cm}
+
 
 \section{Rasch mixture models} \label{sec:theory}
 
@@ -1034,6 +1035,7 @@ was simulated here.
 table(x1 = d$x1, clusters = clusters(cm2b))
 @
 
+\pagebreak
 
 \section{Empirical application: Verbal aggression}
 \label{sec:application}
@@ -1165,7 +1167,7 @@ six refer to the second sentence (train). The six reactions are grouped in
 \dquote{want}/\dquote{do} pairs: first for \dquote{curse}, then \dquote{scold},
 and finally \dquote{shout}.
 
-The third component displays a zigzag pattern which indicates that
+The second component displays a zigzag pattern which indicates that
 subjects in this component always find it easier or less extreme to
 \dquote{want to} react a certain way rather than to actually
 \dquote{do} react that way. In the other two components this want/do
@@ -1173,16 +1175,16 @@ relationship is reversed, except for the shouting response (to either
 situation) and the scolding response to the train situation~(S2) in
 the first component.
 
-In the second component, there are no big differences in the estimated
+In the third component, there are no big differences in the estimated
 item parameters. Neither any situation (S1 or S2) nor any type of
 verbal response (curse, scold, or shout) is perceived as particularly
-extreme by subjects in this component. In components~1 and~3, the
+extreme by subjects in this component. In components~1 and~2, the
 situation is also not very relevant but subjects differentiate between
 the three verbal responses. This is best visible in component~1 where item
 difficulty is clearly increasing from response \dquote{curse} to
 response \dquote{shout}. Thus, shouting is perceived as the most
 extreme verbal response while cursing is considered a comparably
-moderate response. In component~3 this pattern is also visible albeit
+moderate response. In component~2 this pattern is also visible albeit
 not as prominently as in component~1.
 
 % One could also consider the 3-component model \emph{with} concomitant

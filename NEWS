@@ -1,3 +1,32 @@
+Changes in Version 1.1-2
+
+  o The manuscript "Rasch Mixture Models for DIF Detection: A Comparison
+    of Old and New Score Specifications." has now been published in
+    Educational and Psychological Measurement, 75(2), 208-234.
+    doi:10.1177/0013164414536183. A preprint version is included as
+    vignette("scores", package = "psychomix").
+
+  o Improved functionality for raschmix() to allow for item response
+    data in the itemresp-class.
+
+  o Improved axis labeling in plot function for raschmix objects.
+
+  o In the plot method nchar(..., type = "width") is now used to determine
+    the default abbreviation.
+  
+  o If suggested packages are needed internally, these are only called
+    with :: semantics and not require()d anymore.
+  
+
+Changes in Version 1.1-1
+
+  o Adapted raschmix() to work with both the old psychotools version
+    0.2-0 and the new 0.3-0.
+    
+  o Updated the "scores" vignette which is now also accepted for publication
+    in Educational and Psychological Measurement.
+
+
 Changes in Version 1.1-0
 
   o Improved functionality for raschmix() to allow for differences 

@@ -150,7 +150,7 @@ FLXMCbtreg <- function(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
     if(!inherits(y, "paircomp")) y <- paircomp(y,
       labels = unique(unlist(strsplit(colnames(y), ":", fixed = TRUE))))
 
-    btreg <- btReg.fit(y, weights = w, type = type, ref = ref,
+    btreg <- btmodel(y, weights = w, type = type, ref = ref,
       undecided = undecided, position = position, ...)
 
     para <- list(coef = btreg$coefficients, df = btreg$df,

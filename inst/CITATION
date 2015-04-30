@@ -26,14 +26,16 @@ citEntry(entry = "Article",
                    as.person("Carolin Strobl"),
                    as.person("Achim Zeileis")),
   journal      = "Educational and Psychological Measurement",
-  year         = "2014",
-  note         = "Forthcoming",
+  year         = "2015",
+  volume       = "75",
+  number       = "2",
+  pages        = "208--234",
   doi          = "10.1177/0013164414536183",
 
   textVersion  =
-  paste("Hannah Frick, Carolin Strobl, Achim Zeileis (2014).",
+  paste("Hannah Frick, Carolin Strobl, Achim Zeileis (2015).",
         "Rasch Mixture Models for DIF Detection: A Comparison of Old and New Score Specifications.",
-        "Educational and Psychological Measurement, Forthcoming.",
+        "Educational and Psychological Measurement, 75(2), 208-234.",
 	"doi:10.1177/0013164414536183"),
 
   header       = "If you use Rasch mixture models with a restricted score distribution, please additionally cite:"        

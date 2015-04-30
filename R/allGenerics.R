@@ -2,6 +2,8 @@ setGeneric("VarianceCovariance", function(object, ...) standardGeneric("Variance
 
 setGeneric("worth")
 
+setGeneric("itempar")
+
 effectsplot <- function(object, ...) UseMethod("effectsplot")
 setGeneric("effectsplot")
 

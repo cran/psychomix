@@ -12,7 +12,7 @@ raschmix <- function(formula, data, k, subset, weights,
   scores <- match.arg(head(tolower(scores), 1L), c("saturated", "meanvar", "constant"))
   misRes <- missing(restricted)
   
-  ## gradtol renamed reltol in RaschModel.fit()
+  ## gradtol renamed reltol in RaschModel.fit()/raschmodel()
   if(missing(reltol) && !missing(gradtol) && !is.null(gradtol)) reltol <- gradtol
 
   ## arrange formula and data arguments correctly
@@ -60,11 +60,22 @@ raschmix <- function(formula, data, k, subset, weights,
     auxr$na.action <- na.pass
     auxr$weights <- NULL
     mf <- eval(auxr, parent.frame())
-    d$.response <- as.matrix(model.part(ff, lhs = NULL, rhs = 0, data = mf))
+    #d$.response <- as.matrix(model.part(ff, lhs = NULL, rhs = 0, data = mf))
+    mp <- model.part(ff, lhs = NULL, rhs = 0, data = mf)
+    if(all(sapply(mp, is.itemresp))) {
+      d$.response <- mp[[1]]
+      if(length(mp) > 1) for (i in 2:length(mp)) d$.response <- merge(d$.response, mp[[i]])
+    } else {
+      d$.response <- as.matrix(mp)
+    }
   }
   
   ## data processing: remove observations without any item responses
-  missing.obs <- apply(is.na(d$.response), 1, all)
+  if(class(d$.response) == "itemresp") {
+      missing.obs <- is.na(d$.response)
+  } else {
+    missing.obs <- apply(is.na(d$.response), 1, all)
+  }
   d <- d[!missing.obs, , drop = FALSE]
 
   ## data processing: remove observations with any NA in concomitant variables
@@ -98,10 +109,11 @@ raschmix <- function(formula, data, k, subset, weights,
   score.0 <- rowSums(d$.response, na.rm = TRUE) == 0
   n.0 <- sum(score.0)
   d <- d[!score.0, , drop = FALSE]
-  # <FIXME> for observations with NA in item responses: extreme scorer definition
-  # of scoring all (non-missing) items needs to be implemented </FIXME>
-  ## score.m <- rowSums(d$.response, na.rm = TRUE) == ncol(d$.response)
-  score.m <- (rowSums(d$.response, na.rm = TRUE) + rowSums(is.na(d$.response))) == ncol(d$.response)
+  if(class(d$.response) == "itemresp"){
+    score.m <- (rowSums(d$.response, na.rm = TRUE) + rowSums(is.na(as.matrix(d$.response)))) == ncol(d$.response)
+  } else {
+    score.m <- (rowSums(d$.response, na.rm = TRUE) + rowSums(is.na(d$.response))) == ncol(d$.response)
+  }
   n.m <- sum(score.m)
   d <- d[!score.m, , drop = FALSE]
 
@@ -141,11 +153,10 @@ raschmix <- function(formula, data, k, subset, weights,
     
   ## starting values via mrm() from "mRm"
   if(identical(cluster, "mrm")) {
-    if(!require("mRm")) stop("starting values from mrm() require package 'mRm'")
     if(length(k) > 1L) warning("starting values from mrm() can only be used with a single 'k', first used")
     k <- k[1L]
     cluster <- if(nrep > 1L) {
-      fits <- lapply(1:nrep, function(i) mrm(d$.response, k))
+      fits <- lapply(1:nrep, function(i) mRm::mrm(d$.response, k))
       ix <- which.max(sapply(fits, "[[", "logLik"))
       mrm_clusters(d$.response, k, fits[[ix]])
     } else {
@@ -267,7 +278,7 @@ FLXMCrasch <- function(formula = . ~ ., scores = "saturated", delta = NULL,
     }
     
     ## estimate parameters
-    rasch.model <- RaschModel.fit(y, weights = w, reltol = reltol,
+    rasch.model <- raschmodel(y, weights = w, reltol = reltol,
       deriv = deriv, hessian = hessian, start = start, ...)
 
     ## # number of items and observations
@@ -514,9 +525,6 @@ loglikfun_rasch <- function(item, score, y, deriv, scores, nonExtremeProb, ...) 
 
 mrm_clusters <- function(y, k, fit = NULL)
 {
-  ## need mRm package
-  stopifnot(require("mRm"))
-
   ## data
   y <- y[, colSums(y) > 0 & colSums(y) < nrow(y), drop = FALSE]
   m <- ncol(y)
@@ -528,7 +536,7 @@ mrm_clusters <- function(y, k, fit = NULL)
   rs <- rowSums(y)
   
   ## fit mrm mixture model
-  if(is.null(fit)) fit <- mrm(y, k)
+  if(is.null(fit)) fit <- mRm::mrm(y, k)
 
   ## extract list of coefficients in RaschModel.fit parametrization
   beta <- lapply(1:k, function(i) {

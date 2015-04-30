@@ -15,6 +15,7 @@ mrs
 mre
 mres
 
+options(digits = 4)
 parameters(mr)
 
 ## mrrefit <- refit(mr)

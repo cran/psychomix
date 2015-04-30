@@ -99,12 +99,12 @@ cache <- FALSE
 \fancyhead[RO,LE]{\thepage}
 \fancyhead[CO]{\textit{\normalsize Hannah Frick, Carolin Strobl, Achim Zeileis}}
 \fancyhead[CE]{\textit{\normalsize Rasch Mixture Models for DIF Detection}}
-\fancyfoot[LO,LE]{\small Copyright {\copyright} 2014 The Author(s)}
+\fancyfoot[LO,LE]{\small Copyright {\copyright} 2015 The Author(s)}
 \fancypagestyle{plain}{
 \fancyhf{}
-\fancyfoot[LO,LE]{\small This is a preprint of an article accepted for publication in \textit{Educational and Psychological Measurement}.
+\fancyfoot[LO,LE]{\small This is a preprint of an article published in \textit{Educational and Psychological Measurement}, \textbf{75}(2), 208--234.
   \doi{10.1177/0013164414536183} \\
-  Copyright~{\copyright} 2014 The Author(s). \url{http://epm.sagepub.com/}.
+  Copyright~{\copyright} 2015 The Author(s). \url{http://epm.sagepub.com/}.
   }
 }
 

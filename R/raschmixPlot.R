@@ -1,10 +1,11 @@
 setMethod("plot", signature(x = "raschmix", y = "missing"),
           function(x, y, component = NULL, difficulty = TRUE,
-                   center = TRUE, index = TRUE, names = NULL,
+                   center = TRUE, index = TRUE, names = TRUE,
                    abbreviate = FALSE, ref = TRUE, col =  "black",
                    refcol = "lightgray", linecol = NULL, lty = 2, cex = 1,
                    pch = 19, type = NULL, ylim = NULL, xlab = "Items",
-                   ylab = NULL, legend = TRUE, pos = "topright", ...){
+                   ylab = NULL, legend = TRUE, pos = "topright",
+                   srt = 45, adj = c(1.1, 1.1), ...){
   ##  modified code from psychotree
          
   ## parameters to be plotted
@@ -25,7 +26,11 @@ setMethod("plot", signature(x = "raschmix", y = "missing"),
   ncf <- nrow(cf)
 
   ## labeling
-  if(is.null(names)) names <- !index
+  if(is.null(names)) names <- !index 
+  if(isTRUE(names) & length(unique(sapply(strsplit(rownames(cf), split = ".", fixed = TRUE), function(x) x[1]))) == 1){
+    rownames(cf) <- sapply(strsplit(rownames(cf), split = ".", fixed = TRUE),
+                           function(x) paste(x[-1], collapse = "."))
+  }
   if(is.character(names)) {
     rownames(cf) <- names
     names <- TRUE
@@ -41,7 +46,7 @@ setMethod("plot", signature(x = "raschmix", y = "missing"),
 
   ## abbreviation
   if(is.logical(abbreviate)) {
-    nlab <- max(nchar(rownames(cf)))
+    nlab <- max(nchar(rownames(cf), type = "width"))
     abbreviate <- if(abbreviate) as.numeric(cut(nlab, c(-Inf, 1.5, 4.5, 7.5, Inf))) else nlab
   }
   rownames(cf) <- abbreviate(rownames(cf), abbreviate)
@@ -153,7 +158,13 @@ setMethod("plot", signature(x = "raschmix", y = "missing"),
         }
       }
     }
-    if(index) axis(1, at = ix, labels = rownames(cf))
+    if(index){
+      if(names){
+        text(ix, par("usr")[3], labels = rownames(cf), srt = srt, adj = adj, xpd = TRUE, cex = 0.9)
+      } else {
+        axis(1, at = ix, labels = rownames(cf))
+      }
+    }
     if (length(component) > 1 & legend){
       pch <- sapply(component, function(x){
           ref.i <- min(which(cf_ident[,x]))

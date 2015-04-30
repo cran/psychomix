@@ -21,6 +21,78 @@ setMethod("worth", "raschmix", function(object, difficulty = TRUE,
   return(rval)
 })
 
+setMethod("itempar", "raschmix", function(object, ref = NULL, alias = TRUE, ...){
+
+  ## extract parameters
+  cf <- parameters(object, which = "item", difficulty = TRUE)
+  cf[1,] <- 0
+  m <- nrow(cf)
+  lbs <- gsub("item.", "", rownames(cf), fixed = TRUE)
+
+  ## process ref
+  if (is.null(ref)) {
+    ref <- 1:m
+  } else if (is.vector(ref) && is.character(ref)) {
+    stopifnot(all(ref %in% lbs))
+    ref <- which(lbs %in% ref)
+  } else if (is.vector(ref) && is.numeric(ref)) {
+    ref <- as.integer(ref)
+    stopifnot(all(ref %in% 1:m))
+  } else if (is.matrix(ref) && is.numeric(ref)) {
+    stopifnot(nrow(ref) == m && ncol(ref) == m)
+  } else stop("Argument 'ref' is misspecified (see ?itempar for possible values).")
+
+  ## if not given, specify contrast matrix
+  if (is.matrix(ref)) {
+    D <- ref
+  } else {
+    D <- diag(m)
+    D[, ref] <- D[, ref] - 1/length(ref)
+  }
+
+  ## apply ref
+  cf <- apply(cf, 2, function(x) as.vector(D %*% x))
+  
+  ## items solved by no or all subjects
+  rval <- matrix(NA, ncol = ncol(cf), nrow = length(object@identified.items))
+  rval[object@identified.items == "0/1", ] <- cf
+  rval[object@identified.items == "0", ] <-  Inf
+  rval[object@identified.items == "1", ] <- -Inf
+  
+  rownames(rval) <- names(object@identified.items)
+  colnames(rval) <- colnames(cf)
+
+  ## ## if vcov requested: adjust existing vcov
+  ## if (vcov) {
+  ##   warning("Variance covariance matrix not implemented for Rasch mixture models.")
+  ## }
+  ## vc <- matrix(NA, nrow = length(object@identified.items), ncol = length(object@identified.items))
+  
+  ## ## set labels
+  ## rownames(rval) <- rownames(vc) <- colnames(vc) <- names(object@identified.items) #lbs
+
+
+  ## process argument alias
+  if (!alias) {
+      if (is.matrix(ref)) {
+          ## FIXME: Implement alias when ref is a specific constrast matrices -> detect linear dependent columns?
+          stop("Processing of argument 'alias' not implemented with a contrast matrix given in argument 'ref'.")
+      } else {
+          aliased <- which(object@identified.items == "0/1")[ref[1]]
+          rval <- rval[-aliased,]
+          #vc <- vc[-aliased, -aliased]
+          alias <- paste0("I", aliased)
+          names(alias) <- names(object@identified.items)[aliased]
+      }
+  }
+  
+  ## ## setup and return result object
+  ## rv <- structure(rval, class = "itempar", model = "raschmix", ref = ref, alias = alias, vcov = vc)
+  ## return(rv)
+  return(rval)
+    
+})
+
 
 scoreProbs <- function(object, component = NULL, simplify = TRUE){
 
