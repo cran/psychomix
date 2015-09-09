@@ -1,6 +1,6 @@
 Package: psychomix
-Version: 1.1-2
-Date: 2015-04-30
+Version: 1.1-3
+Date: 2015-09-09
 Title: Psychometric Mixture Models
 Authors@R: c(person(given = "Hannah", family = "Frick", role = c("aut", "cre"), email = "h.frick@ucl.ac.uk"),
              person(given = "Carolin", family = "Strobl", role = "aut", email = "Carolin.Strobl@psychologie.uzh.ch"),
@@ -17,11 +17,11 @@ Imports: graphics, methods, stats, lattice, Formula (>= 1.1-0),
 Suggests: effects, lmtest, mRm, nnet, numDeriv
 License: GPL-2 | GPL-3
 NeedsCompilation: no
-Packaged: 2015-05-05 08:38:22 UTC; frick
+Packaged: 2015-09-09 09:36:22 UTC; frick
 Author: Hannah Frick [aut, cre],
   Carolin Strobl [aut],
   Friedrich Leisch [aut],
   Achim Zeileis [aut]
 Maintainer: Hannah Frick <h.frick@ucl.ac.uk>
 Repository: CRAN
-Date/Publication: 2015-05-05 11:34:17
+Date/Publication: 2015-09-09 13:47:17

@@ -2,6 +2,8 @@ import("graphics", "methods", "stats", "flexmix", "psychotools", "Formula")
 importFrom("modeltools", "parameters")
 importFrom("lattice", "histogram")
 importFrom("lattice", "xyplot", "trellis.par.get", "panel.abline", "panel.xyplot")
+importFrom("grDevices", "gray.colors", "hcl")
+importFrom("utils", "head")
 
 export(
   ## Bradley-Terry mixture models: interface and driver

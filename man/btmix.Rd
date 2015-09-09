@@ -142,6 +142,7 @@ xyplot(cm4)
 effectsplot(cm4)
 
 ## effect of education
+library("effects")
 eff4 <- allEffects(cm4)
 effectsplot(eff4, selection = "education")
 }
