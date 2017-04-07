@@ -7,7 +7,7 @@
 \title{Finite Mixtures of Bradley-Terry Models}
 
 \description{
-  Fit finte mixtures of Bradley-Terry models for paired comparisons data via
+  Fit finite mixtures of Bradley-Terry models for paired comparisons data via
   maximum likelihood with the EM algorithm.
 }
 

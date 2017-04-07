@@ -104,7 +104,7 @@ setMethod("plot", signature(x = "raschmix", y = "missing"),
     if(difficulty) "difficulty" else "easiness", "parameters")
 
   ## raw plot
-  ix <- seq(along = cf[,1]) 
+  ix <- seq_along(cf[,1]) 
   ix.ni <- if (legend){
     matrix(rep(seq(from = 2, to = nrow(cf)*(1 - 1/ncol(cf)),
                    length.out = ncol(cf)), each = ncf),

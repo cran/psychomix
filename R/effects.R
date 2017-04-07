@@ -56,11 +56,14 @@ refit_concomitant_psychomix <- function(object, binary = c("glm", "multinom"), .
 }
 
 setMethod("effectsplot", "btmix", effectsplot_psychomix)
+setMethod("effectsplot", "mptmix", effectsplot_psychomix)
 setMethod("effectsplot", "raschmix", effectsplot_psychomix)
 effectsplot.efflist <- effectsplot_psychomix
 effectsplot.effpoly <- effectsplot_psychomix
 effectsplot.eff     <- effectsplot_psychomix
 
-effect.raschmix <- effect.btmix <- function(term, mod, ...) effects::effect(term, refit_concomitant_psychomix(mod), ...)
-allEffects.raschmix <- allEffects.btmix <- function(object, ...) effects::allEffects(refit_concomitant_psychomix(object), ...)
+effect.raschmix <- effect.btmix <- effect.mptmix <-
+  function(term, mod, ...) effects::effect(term, refit_concomitant_psychomix(mod), ...)
+allEffects.raschmix <- allEffects.btmix <- allEffects.mptmix <-
+  function(object, ...) effects::allEffects(refit_concomitant_psychomix(object), ...)
 

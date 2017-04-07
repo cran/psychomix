@@ -41,3 +41,24 @@ setClass("stepBTmix",
          contains = "stepFlexmix")
 
 
+## define own class for mptmix and stepMPTmix objects
+setClass("FLXMCmpt", contains = "FLXMC")
+
+setClass("mptmix",
+         representation(flx.call = "call",
+                        nobs = "numeric"  # ,
+                      # labels = "character",
+                      # mscale = "numeric",
+                      # undecided = "logical",
+                      # ref = "ANY",
+                      # type = "character"
+                       ),
+         contains = "flexmix")
+
+setClass("stepMPTmix",
+         representation(flx.call = "call"  # ,
+                      # labels = "character",
+                      # mscale = "numeric"
+                       ),
+         contains = "stepFlexmix")
+

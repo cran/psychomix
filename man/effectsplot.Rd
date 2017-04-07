@@ -3,11 +3,14 @@
 \alias{effectsplot.efflist}
 \alias{effectsplot.effpoly}
 \alias{allEffects.btmix}
+\alias{allEffects.mptmix}
 \alias{allEffects.raschmix}
 \alias{effect.btmix}
+\alias{effect.mptmix}
 \alias{effect.raschmix}
 \alias{effectsplot,raschmix-method}
 \alias{effectsplot,btmix-method}
+\alias{effectsplot,mptmix-method}
 
 \title{Effects Displays for Concomitant Variables in Finite Mixture Models}
 
@@ -37,9 +40,9 @@ effectsplot(object, \dots)
   the corresponding \code{plot} methods from the \pkg{effects}
   package create the display.
   
-  Currently, this is implemented for \code{\link{raschmix}} and
-  \code{\link{btmix}} objects. The interface is not yet fully tested
-  and may change in future versions.
+  Currently, this is implemented for \code{\link{raschmix}},
+  \code{\link{btmix}}, and \code{\link{mptmix}} objects. The interface is not
+  yet fully tested and may change in future versions.
 }
 
 \references{

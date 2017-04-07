@@ -57,7 +57,7 @@
   The following functions should be used for accessing the corresponding
   slots:
   \describe{
-    \item{\code{cluster}:}{Cluster assignments of observations.}
+    \item{\code{clusters}:}{Cluster assignments of observations.}
     \item{\code{posterior}:}{A matrix of posterior probabilities for each
       observation.}
   }

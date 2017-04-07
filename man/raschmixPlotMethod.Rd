@@ -8,7 +8,7 @@
 \title{Profile Plot of Item Parameters}
 \description{
   The \code{plot} method for \code{\link{raschmix-class}} objects gives a
-  base plot of the item parameter profiles in each class. A lettice plot
+  base plot of the item parameter profiles in each class. A lattice plot
   of the item parameters is returned by \code{xyplot}. A rootogram or
   histogram of the posterior probabilities is plotted via \code{histogram}.
 }

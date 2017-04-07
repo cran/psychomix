@@ -14,6 +14,10 @@ export(
   "raschmix",
   "FLXMCrasch",
 
+  ## MPT mixture models: interface and driver
+  "mptmix",
+  "FLXMCmpt",
+
   ## additional utitilies
   "simRaschmix",
   "scoreProbs",
@@ -23,13 +27,16 @@ export(
   "effectsplot.efflist",
   "effectsplot.effpoly",
   "allEffects.btmix",
+  "allEffects.mptmix",
   "allEffects.raschmix",
   "effect.btmix",
+  "effect.mptmix",
   "effect.raschmix"
 )
 
 exportClasses("btmix")
 exportClasses("raschmix")
+exportClasses("mptmix")
 
 exportMethods("effectsplot")
 exportMethods("parameters")
@@ -49,4 +56,8 @@ S3method("xyplot", "btmix")
 ## S3 methods for raschmix
 S3method("histogram", "raschmix")
 S3method("xyplot", "raschmix")
+
+## S3 methods for mptmix
+S3method("histogram", "mptmix")
+S3method("xyplot", "mptmix")
 
