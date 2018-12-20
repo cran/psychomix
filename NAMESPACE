@@ -61,3 +61,12 @@ S3method("xyplot", "raschmix")
 S3method("histogram", "mptmix")
 S3method("xyplot", "mptmix")
 
+## conditional registration of effects methods
+if(getRversion() >= "3.6.0") {
+  S3method(effects::allEffects, "btmix")
+  S3method(effects::allEffects, "mptmix")
+  S3method(effects::allEffects, "raschmix")
+  S3method(effects::effect, "btmix")
+  S3method(effects::effect, "mptmix")
+  S3method(effects::effect, "raschmix")
+}

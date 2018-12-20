@@ -1,6 +1,6 @@
 
-R version 3.2.0 (2015-04-16) -- "Full of Ingredients"
-Copyright (C) 2015 The R Foundation for Statistical Computing
+R version 3.5.1 (2018-07-02) -- "Feather Spray"
+Copyright (C) 2018 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -161,4 +161,4 @@ score.9      0.256703  0.141052
 > 
 > proc.time()
    user  system elapsed 
-  6.488   0.004   6.490 
+  4.580   0.044   4.622 

@@ -140,11 +140,13 @@ cm4 <- getModel(cm, which = "4")
 library("lattice")
 xyplot(cm4)
 effectsplot(cm4)
+effectsplot(cm4, selection = "education")
 
-## effect of education
-library("effects")
+## vis effects package directly
+if(require("effects")) {
 eff4 <- allEffects(cm4)
-effectsplot(eff4, selection = "education")
+plot(eff4)
+}
 }
 
 }

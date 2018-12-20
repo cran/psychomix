@@ -1167,25 +1167,25 @@ six refer to the second sentence (train). The six reactions are grouped in
 \dquote{want}/\dquote{do} pairs: first for \dquote{curse}, then \dquote{scold},
 and finally \dquote{shout}.
 
-The second component displays a zigzag pattern which indicates that
+The first component displays a zigzag pattern which indicates that
 subjects in this component always find it easier or less extreme to
 \dquote{want to} react a certain way rather than to actually
 \dquote{do} react that way. In the other two components this want/do
 relationship is reversed, except for the shouting response (to either
 situation) and the scolding response to the train situation~(S2) in
-the first component.
+the second component.
 
 In the third component, there are no big differences in the estimated
 item parameters. Neither any situation (S1 or S2) nor any type of
 verbal response (curse, scold, or shout) is perceived as particularly
 extreme by subjects in this component. In components~1 and~2, the
 situation is also not very relevant but subjects differentiate between
-the three verbal responses. This is best visible in component~1 where item
+the three verbal responses. This is best visible in component~2 where item
 difficulty is clearly increasing from response \dquote{curse} to
 response \dquote{shout}. Thus, shouting is perceived as the most
 extreme verbal response while cursing is considered a comparably
-moderate response. In component~2 this pattern is also visible albeit
-not as prominently as in component~1.
+moderate response. In component~1 this pattern is also visible albeit
+not as prominently as in component~2.
 
 % One could also consider the 3-component model \emph{with} concomitant
 % variables as its BIC was almost equivalent to that of the model

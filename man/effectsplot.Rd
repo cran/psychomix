@@ -62,7 +62,7 @@ effectsplot(object, \dots)
 }
 
 \examples{
-\dontrun{
+\donttest{
 ## data on party preferences in Germany
 ## (omit single observation with education = 1)
 data("GermanParties2009", package = "psychotools")
@@ -79,9 +79,11 @@ library("lattice")
 xyplot(cm4)
 effectsplot(cm4)
 
-## effect of education
+## vis effects package directly
+if(require("effects")) {
 eff4 <- allEffects(cm4)
-effectsplot(eff4, selection = "education")
+plot(eff4)
+}
 }
 }
 

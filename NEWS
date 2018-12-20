@@ -1,3 +1,9 @@
+Changes in Version 1.1-5
+
+  o Conditional registration of effect() and allEffects() methods when "effects"
+    package is loaded.
+
+
 Changes in Version 1.1-4
 
   o Added a new function mptmix() for MPT mixture models, also known as
