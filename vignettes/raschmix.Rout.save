@@ -6,6 +6,8 @@ Loading required package: flexmix
 Loading required package: lattice
 Loading required package: psychotools
 
+> library("lattice")
+
 > data("VerbalAggression", package = "psychotools")
 
 > set.seed(1090)
@@ -81,13 +83,13 @@ AIC: 17728.08   BIC: 17917.35
 item.Item01        NA         NA
 item.Item02 0.4407365 -0.5027285
 item.Item03 0.8744906 -1.2465803
-item.Item04 1.5167299 -1.7742828
+item.Item04 1.5167298 -1.7742828
 item.Item05 2.3227714 -2.3148771
 item.Item06 2.8198982 -2.9215417
 item.Item07 3.5022589 -3.4979090
 item.Item08 4.0973667 -4.0742453
 item.Item09 4.6132020 -4.6818213
-item.Item10 5.2737456 -5.2640452
+item.Item10 5.2737457 -5.2640452
 
 > worth(m1b)
            Comp.1     Comp.2
@@ -317,4 +319,4 @@ score2      -0.1703023 -0.2488384
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 93.232   0.123  93.361 
+ 93.791   0.215  94.058 

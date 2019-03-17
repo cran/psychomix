@@ -6,6 +6,8 @@ Loading required package: flexmix
 Loading required package: lattice
 Loading required package: psychotools
 
+> library("lattice")
+
 > set.seed(1090)
 
 > cache <- FALSE
@@ -435,4 +437,4 @@ The following object is masked _by_ ‘.GlobalEnv’:
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 72.804   0.128  72.959 
+ 26.536   0.114  26.663 

@@ -5,6 +5,7 @@
 ###################################################
 options(width = 70, prompt = "R> ", continue = "+  ")
 library("psychomix")
+library("lattice")
 data("VerbalAggression", package = "psychotools")
 set.seed(1090)
 cache <- FALSE

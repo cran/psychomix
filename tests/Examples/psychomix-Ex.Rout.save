@@ -342,7 +342,7 @@ AIC: 17728.08   BIC: 17917.35
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  1.119 0.033 1.157 0 0 
+Time elapsed:  1.128 0.028 1.159 0 0 
 > grDevices::dev.off()
 null device 
           1 

@@ -1,3 +1,9 @@
+Changes in Version 1.1-6
+
+  o Load the "lattice" package in the vignettes in preparation to changes
+    in the "flexmix" package.
+
+
 Changes in Version 1.1-5
 
   o Conditional registration of effect() and allEffects() methods when "effects"
