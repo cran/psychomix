@@ -10,6 +10,8 @@ Loading required package: psychotools
 
 > data("VerbalAggression", package = "psychotools")
 
+> suppressWarnings(RNGversion("3.5.0"))
+
 > set.seed(1090)
 
 > cache <- FALSE
@@ -319,4 +321,4 @@ score2      -0.1703023 -0.2488384
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 93.791   0.215  94.058 
+103.573   0.307 104.138 

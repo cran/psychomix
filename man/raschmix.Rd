@@ -161,6 +161,7 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
 ##########
 
 ## simulate response from Rost's scenario 2 (with 2 latent classes)
+suppressWarnings(RNGversion("3.5.0"))
 set.seed(1)
 r2 <- simRaschmix(design = "rost2")
 

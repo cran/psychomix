@@ -8,6 +8,8 @@ Loading required package: psychotools
 
 > library("lattice")
 
+> suppressWarnings(RNGversion("3.5.0"))
+
 > set.seed(1090)
 
 > cache <- FALSE
@@ -437,4 +439,4 @@ The following object is masked _by_ ‘.GlobalEnv’:
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
- 26.536   0.114  26.663 
+ 26.668   0.183  26.938 

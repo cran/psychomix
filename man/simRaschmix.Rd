@@ -92,6 +92,7 @@
 ## Rost's DGPs ##
 #################
 
+suppressWarnings(RNGversion("3.5.0"))
 set.seed(1990)
 
 ## DGP 1 with just one latent class 
@@ -116,6 +117,7 @@ attr(r3, "difficulty")
 ## flexible specification of DGPs ##
 ####################################
 
+suppressWarnings(RNGversion("3.5.0"))
 set.seed(482)
 
 ## number of observations

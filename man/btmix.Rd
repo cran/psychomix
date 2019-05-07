@@ -125,6 +125,7 @@ gp <- subset(GermanParties2009, education != "1")
 gp$education <- factor(gp$education)
 
 ## Bradley-Terry mixture models
+suppressWarnings(RNGversion("3.5.0"))
 set.seed(1)
 ## fit models for k = 1, ..., 4 with concomitant variables
 cm <- btmix(preference ~ gender + education + age + crisis,

@@ -71,6 +71,7 @@ gp$education <- factor(gp$education)
 
 ## fit Bradley-Terry mixture, see ?btmix for more details
 ## and a fully-worked example
+suppressWarnings(RNGversion("3.5.0"))
 set.seed(2)
 cm4 <- btmix(preference ~ gender + education + age + crisis, data = gp, k = 4, nrep = 1)
 

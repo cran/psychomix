@@ -6,6 +6,7 @@
 options(width = 70, prompt = "R> ", continue = "+  ")
 library("psychomix")
 library("lattice")
+suppressWarnings(RNGversion("3.5.0"))
 set.seed(1090)
 cache <- FALSE
 
