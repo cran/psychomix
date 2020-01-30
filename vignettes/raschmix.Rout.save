@@ -1,5 +1,6 @@
 
-> options(width = 70, prompt = "R> ", continue = "+  ")
+> options(width = 70, prompt = "R> ", continue = "+  ", 
++     digits = 4)
 
 > library("psychomix")
 Loading required package: flexmix
@@ -41,16 +42,16 @@ Loading required package: psychotools
 Call:
 raschmix(formula = r2, k = 1:3)
 
-  iter converged k k0     logLik      AIC      BIC      ICL
-1    2      TRUE 1  1 -10484.227 21002.45 21094.39 21094.39
-2    9      TRUE 2  2  -8829.038 17728.08 17917.35 17987.30
-3  106      TRUE 3  3  -8813.362 17732.72 18019.34 18429.40
+  iter converged k k0 logLik   AIC   BIC   ICL
+1    2      TRUE 1  1 -10484 21002 21094 21094
+2    9      TRUE 2  2  -8829 17728 17917 17987
+3  106      TRUE 3  3  -8813 17733 18019 18429
 
 > plot(m1)
 
 > BIC(m1)
-       1        2        3 
-21094.39 17917.35 18019.34 
+    1     2     3 
+21094 17917 18019 
 
 > m1b <- getModel(m1, which = "BIC")
 
@@ -64,47 +65,47 @@ Comp.1   0.5  819   1285 0.637
 Comp.2   0.5  830   1301 0.638
 
 Item Parameters:
-           Comp.1     Comp.2
-Item01 -2.5461200  2.6278031
-Item02 -2.1053835  2.1250746
-Item03 -1.6716294  1.3812228
-Item04 -1.0293901  0.8535203
-Item05 -0.2233486  0.3129260
-Item06  0.2737782 -0.2937386
-Item07  0.9561390 -0.8701059
-Item08  1.5512468 -1.4464421
-Item09  2.0670820 -2.0540182
-Item10  2.7276257 -2.6362421
+        Comp.1  Comp.2
+Item01 -2.5461  2.6278
+Item02 -2.1054  2.1251
+Item03 -1.6716  1.3812
+Item04 -1.0294  0.8535
+Item05 -0.2233  0.3129
+Item06  0.2738 -0.2937
+Item07  0.9561 -0.8701
+Item08  1.5512 -1.4464
+Item09  2.0671 -2.0540
+Item10  2.7276 -2.6362
 
-'log Lik.' -8829.038 (df=35)
-AIC: 17728.08   BIC: 17917.35 
+'log Lik.' -8829 (df=35)
+AIC: 17728   BIC: 17917 
 
 
 > parameters(m1b, "item")
-               Comp.1     Comp.2
-item.Item01        NA         NA
-item.Item02 0.4407365 -0.5027285
-item.Item03 0.8744906 -1.2465803
-item.Item04 1.5167298 -1.7742828
-item.Item05 2.3227714 -2.3148771
-item.Item06 2.8198982 -2.9215417
-item.Item07 3.5022589 -3.4979090
-item.Item08 4.0973667 -4.0742453
-item.Item09 4.6132020 -4.6818213
-item.Item10 5.2737457 -5.2640452
+            Comp.1  Comp.2
+item.Item01     NA      NA
+item.Item02 0.4407 -0.5027
+item.Item03 0.8745 -1.2466
+item.Item04 1.5167 -1.7743
+item.Item05 2.3228 -2.3149
+item.Item06 2.8199 -2.9215
+item.Item07 3.5023 -3.4979
+item.Item08 4.0974 -4.0742
+item.Item09 4.6132 -4.6818
+item.Item10 5.2737 -5.2640
 
 > worth(m1b)
-           Comp.1     Comp.2
-Item01 -2.5461200  2.6278031
-Item02 -2.1053835  2.1250746
-Item03 -1.6716294  1.3812228
-Item04 -1.0293901  0.8535203
-Item05 -0.2233486  0.3129260
-Item06  0.2737782 -0.2937386
-Item07  0.9561390 -0.8701059
-Item08  1.5512468 -1.4464421
-Item09  2.0670820 -2.0540182
-Item10  2.7276257 -2.6362421
+        Comp.1  Comp.2
+Item01 -2.5461  2.6278
+Item02 -2.1054  2.1251
+Item03 -1.6716  1.3812
+Item04 -1.0294  0.8535
+Item05 -0.2233  0.3129
+Item06  0.2738 -0.2937
+Item07  0.9561 -0.8701
+Item08  1.5512 -1.4464
+Item09  2.0671 -2.0540
+Item10  2.7276 -2.6362
 
 > attr(r2, "difficulty")
       [,1] [,2]
@@ -140,10 +141,10 @@ model   1   2
 Call:
 raschmix(data = r2, k = 1:3, scores = "meanvar")
 
-  iter converged k k0     logLik      AIC      BIC      ICL
-1    2      TRUE 1  1 -10486.816 20995.63 21055.12 21055.12
-2    9      TRUE 2  2  -8834.887 17715.77 17840.16 17910.24
-3   70      TRUE 3  3  -8827.596 17725.19 17914.47 18467.25
+  iter converged k k0 logLik   AIC   BIC   ICL
+1    2      TRUE 1  1 -10487 20996 21055 21055
+2    9      TRUE 2  2  -8835 17716 17840 17910
+3   70      TRUE 3  3  -8828 17725 17914 18467
 
 > m2b <- getModel(m2, which = "BIC")
 
@@ -160,29 +161,29 @@ raschmix(data = r2, k = 1:3, scores = "meanvar")
 +     lty = 2, type = "b")
 
 > logLik(m2b)
-'log Lik.' -8834.887 (df=23)
+'log Lik.' -8835 (df=23)
 
 > logLik(m1b)
-'log Lik.' -8829.038 (df=35)
+'log Lik.' -8829 (df=35)
 
 > parameters(m2b, which = "score")
-                     Comp.1     Comp.2
-score.location    0.1655927  0.1001153
-score.dispersion -0.1680513 -0.2514496
+                  Comp.1  Comp.2
+score.location    0.1656  0.1001
+score.dispersion -0.1681 -0.2514
 
 > scoreProbs(m2b)
-         Comp.1    Comp.2
- [1,] 0.0000000 0.0000000
- [2,] 0.1105324 0.1170100
- [3,] 0.1072126 0.1101524
- [4,] 0.1054000 0.1058038
- [5,] 0.1050205 0.1036919
- [6,] 0.1060587 0.1036871
- [7,] 0.1085569 0.1057891
- [8,] 0.1126178 0.1101268
- [9,] 0.1184119 0.1169719
-[10,] 0.1261893 0.1267671
-[11,] 0.0000000 0.0000000
+      Comp.1 Comp.2
+ [1,] 0.0000 0.0000
+ [2,] 0.1105 0.1170
+ [3,] 0.1072 0.1102
+ [4,] 0.1054 0.1058
+ [5,] 0.1050 0.1037
+ [6,] 0.1061 0.1037
+ [7,] 0.1086 0.1058
+ [8,] 0.1126 0.1101
+ [9,] 0.1184 0.1170
+[10,] 0.1262 0.1268
+[11,] 0.0000 0.0000
 
 > if (cache & file.exists("cm2.rda")) {
 +     load("cm2.rda")
@@ -194,9 +195,9 @@ score.dispersion -0.1680513 -0.2514496
 3 : * * *
 
 > rbind(m2 = BIC(m2), cm2 = BIC(cm2))
-           1        2        3
-m2  21055.12 17840.16 17914.47
-cm2 21055.12 17776.30 17865.63
+        1     2     3
+m2  21055 17840 17914
+cm2 21055 17776 17866
 
 > cm2b <- getModel(cm2, which = "BIC")
 
@@ -210,10 +211,10 @@ cm2 21055.12 17776.30 17865.63
 > cm2b <- getModel(cm2, which = "BIC")
 
 > parameters(cm2b, which = "concomitant")
-            1           2
-(Intercept) 0 -0.45751346
-x1          0  0.91232669
-x2          0 -0.02908466
+            1        2
+(Intercept) 0 -0.45751
+x1          0  0.91233
+x2          0 -0.02908
 
 > table(x1 = d$x1, clusters = clusters(cm2b))
    clusters
@@ -249,9 +250,9 @@ x1    1   2
 4 : * * *
 
 > rbind(BIC(va12_mix1), BIC(va12_mix2))
-            1        2        3        4
-[1,] 3874.632 3857.549 3854.355 3889.782
-[2,] 3874.632 3859.120 3854.824 3880.485
+        1    2    3    4
+[1,] 3875 3858 3854 3890
+[2,] 3875 3859 3855 3880
 
 > va12_mix3 <- getModel(va12_mix2, which = "3")
 
@@ -275,10 +276,10 @@ x1    1   2
 > print(xyplot(va12_mix3))
 
 > parameters(getModel(va12_mix2, which = "3"), which = "concomitant")
-            1           2         3
-(Intercept) 0 -0.76273585 -3.674368
-gendermale  0  1.66347276  1.415727
-anger       0  0.01141244  0.126756
+            1        2       3
+(Intercept) 0 -0.76274 -3.6744
+gendermale  0  1.66347  1.4157
+anger       0  0.01141  0.1268
 
 > if (cache & file.exists("fcm2.rda")) {
 +     load("fcm2.rda")
@@ -290,35 +291,35 @@ anger       0  0.01141244  0.126756
 3 : * * *
 
 > rbind(cm2 = BIC(cm2), fcm2 = BIC(fcm2))
-            1       2        3
-cm2  21055.12 17776.3 17865.63
-fcm2 21055.12 17776.3 17865.63
+         1     2     3
+cm2  21055 17776 17866
+fcm2 21055 17776 17866
 
 > fcm2b <- getModel(fcm2, which = "BIC")
 
 > cbind(parameters(cm2b, which = "concomitant"), parameters(fcm2b, 
 +     which = "concomitant"))
-            1           2 1           2
-(Intercept) 0 -0.45751346 0 -0.45751346
-x1          0  0.91232669 0  0.91232669
-x2          0 -0.02908466 0 -0.02908466
+            1        2 1        2
+(Intercept) 0 -0.45751 0 -0.45751
+x1          0  0.91233 0  0.91233
+x2          0 -0.02908 0 -0.02908
 
 > parameters(fcm2b, which = "model")
-                Comp.1     Comp.2
-item.Item01  0.0000000  0.0000000
-item.Item02 -0.5088476  0.4457184
-item.Item03 -1.2543141  0.8791793
-item.Item04 -1.7796107  1.5171980
-item.Item05 -2.3292419  2.3303544
-item.Item06 -2.9354540  2.8248596
-item.Item07 -3.5064344  3.4993600
-item.Item08 -4.0819434  4.0918594
-item.Item09 -4.6987642  4.6150243
-item.Item10 -5.2710875  5.2645455
-score1       0.1643237  0.1006912
-score2      -0.1703023 -0.2488384
+             Comp.1  Comp.2
+item.Item01  0.0000  0.0000
+item.Item02 -0.5088  0.4457
+item.Item03 -1.2543  0.8792
+item.Item04 -1.7796  1.5172
+item.Item05 -2.3292  2.3304
+item.Item06 -2.9355  2.8249
+item.Item07 -3.5064  3.4994
+item.Item08 -4.0819  4.0919
+item.Item09 -4.6988  4.6150
+item.Item10 -5.2711  5.2645
+score1       0.1643  0.1007
+score2      -0.1703 -0.2488
 
  *** Run successfully completed ***
 > proc.time()
    user  system elapsed 
-103.573   0.307 104.138 
+ 87.204   0.263  87.501 

@@ -3,7 +3,7 @@
 ###################################################
 ### code chunk number 1: preliminaries
 ###################################################
-options(width = 70, prompt = "R> ", continue = "+  ")
+options(width = 70, prompt = "R> ", continue = "+  ", digits = 4)
 library("psychomix")
 library("lattice")
 data("VerbalAggression", package = "psychotools")

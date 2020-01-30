@@ -83,12 +83,12 @@ mptmix <- function(formula, data, k, subset, weights,
   }
 
   ## select model (if desired)
-  if (!is.null(which) & class(z) == "stepFlexmix"){
+  if (!is.null(which) & inherits(z, "stepFlexmix")){
     z <- getModel(z, which = which)
   }
   
   ## classify
-  if (class(z) == "flexmix") {
+  if (inherits(z, "flexmix")) {
     z <- as(z, "mptmix")
     z@flx.call <- z@call
     z@call <- cl

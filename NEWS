@@ -1,3 +1,9 @@
+Changes in Version 1.1-8
+
+  o Removed functionality relating to the mRm package which got removed
+    from CRAN.
+
+
 Changes in Version 1.1-7
 
   o Set RNGversion("3.5.0") for reproducibility of previous results due

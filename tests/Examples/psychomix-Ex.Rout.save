@@ -1,5 +1,5 @@
 
-R version 3.6.0 (2019-04-26) -- "Planting of a Tree"
+R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
 Copyright (C) 2019 The R Foundation for Statistical Computing
 Platform: x86_64-pc-linux-gnu (64-bit)
 
@@ -145,17 +145,6 @@ AIC: 17728.08   BIC: 17917.35
 > ## (these take a little longer to compute) 
 > 
 > 
-> 
-> ## optionally: leverage mRm package for faster computation of
-> ## starting values
-> ## Not run: 
-> ##D library("mRm")
-> ##D ## fit 2-component model
-> ##D m1b_mrm <- raschmix(r2, k = 2, score = "saturated", cluster = "mrm")
-> ##D ## essentially identical to previous solution
-> ##D table(clusters(m1b), clusters(m1b_mrm))   
-> ##D worth(m1b) - worth(m1b_mrm)
-> ## End(Not run)
 > 
 > 
 > 
@@ -345,7 +334,7 @@ AIC: 17728.08   BIC: 17917.35
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  1.119 0.033 1.157 0 0 
+Time elapsed:  1.143 0.044 1.187 0 0 
 > grDevices::dev.off()
 null device 
           1 

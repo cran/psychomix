@@ -39,16 +39,12 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
   \item{restricted}{Logical. Should the score distributions be
     restricted to being equal across components? See Frick et al. (2015)
     for details.}
-  \item{nrep}{Number of runs for the starting values for the EM
-    algorithm (if \code{cluster = "mrm"}) or number of runs of the EM
-    algorithm itself.}
+  \item{nrep}{Number of runs of the EM algorithm.}
   \item{cluster}{Either a matrix with \code{k} columns of initial
     cluster membership probabilities for each observation; or a factor
     or integer vector with the initial cluster
     assignments of observations at the start of the EM
-    algorithm. If \code{cluster = "mrm"}, the \code{\link[mRm]{mrm}} function is
-    used to generate starting values. Default is random assignment into \code{k}
-    clusters.}
+    algorithm.}
   \item{control}{An object of class \code{"FLXcontrol"} or a named list;
     controls the EM algorithm and passed in turn to the \code{control}
     argument of \code{\link[flexmix]{flexmix}}.}
@@ -225,16 +221,6 @@ head(posterior(m1b)) ## for first observations only
 table(model = clusters(m1b), true = attr(r2, "cluster"))
 }
 
-## optionally: leverage mRm package for faster computation of
-## starting values
-\dontrun{
-library("mRm")
-## fit 2-component model
-m1b_mrm <- raschmix(r2, k = 2, score = "saturated", cluster = "mrm")
-## essentially identical to previous solution
-table(clusters(m1b), clusters(m1b_mrm))   
-worth(m1b) - worth(m1b_mrm)
-}
 
 \donttest{
 ################################################################

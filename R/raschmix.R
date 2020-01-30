@@ -71,7 +71,7 @@ raschmix <- function(formula, data, k, subset, weights,
   }
   
   ## data processing: remove observations without any item responses
-  if(class(d$.response) == "itemresp") {
+  if(inherits(d$.response, "itemresp")) {
       missing.obs <- is.na(d$.response)
   } else {
     missing.obs <- apply(is.na(d$.response), 1, all)
@@ -109,7 +109,7 @@ raschmix <- function(formula, data, k, subset, weights,
   score.0 <- rowSums(d$.response, na.rm = TRUE) == 0
   n.0 <- sum(score.0)
   d <- d[!score.0, , drop = FALSE]
-  if(class(d$.response) == "itemresp"){
+  if(inherits(d$.response, "itemresp")) {
     score.m <- (rowSums(d$.response, na.rm = TRUE) + rowSums(is.na(as.matrix(d$.response)))) == ncol(d$.response)
   } else {
     score.m <- (rowSums(d$.response, na.rm = TRUE) + rowSums(is.na(d$.response))) == ncol(d$.response)
@@ -151,19 +151,19 @@ raschmix <- function(formula, data, k, subset, weights,
   ## control parameters
   ctrl <- as(control, "FLXcontrol")  
     
-  ## starting values via mrm() from "mRm"
-  if(identical(cluster, "mrm")) {
-    if(length(k) > 1L) warning("starting values from mrm() can only be used with a single 'k', first used")
-    k <- k[1L]
-    cluster <- if(nrep > 1L) {
-      fits <- lapply(1:nrep, function(i) mRm::mrm(d$.response, k))
-      ix <- which.max(sapply(fits, "[[", "logLik"))
-      mrm_clusters(d$.response, k, fits[[ix]])
-    } else {
-      mrm_clusters(d$.response, k)
-    }
-    nrep <- 1L
-  }
+  ## ## starting values via mrm() from "mRm"
+  ## if(identical(cluster, "mrm")) {
+  ##   if(length(k) > 1L) warning("starting values from mrm() can only be used with a single 'k', first used")
+  ##   k <- k[1L]
+  ##   cluster <- if(nrep > 1L) {
+  ##     fits <- lapply(1:nrep, function(i) mRm::mrm(d$.response, k))
+  ##     ix <- which.max(sapply(fits, "[[", "logLik"))
+  ##     mrm_clusters(d$.response, k, fits[[ix]])
+  ##   } else {
+  ##     mrm_clusters(d$.response, k)
+  ##   }
+  ##   nrep <- 1L
+  ## }
 
   ## fitting
   ## FIXME: use initFlexmix instead of stepFlexmix?
@@ -178,12 +178,12 @@ raschmix <- function(formula, data, k, subset, weights,
   }
 
   ## select model (if desired)
-  if (!is.null(which) & class(z) == "stepFlexmix"){
+  if (!is.null(which) & inherits(z, "stepFlexmix")) {
     z <- getModel(z, which = which)
   }
   
   ## classify
-  if (class(z) == "flexmix") { ## is(z, "flexmix")?
+  if (inherits(z, "flexmix")) { ## is(z, "flexmix")?
     ## df: include df for extreme score probs if estimated
     z@df <- z@df + (pi.0 != 0) + (pi.m != 0)
     ## df: include df for score model if restricted over components
@@ -523,40 +523,40 @@ loglikfun_rasch <- function(item, score, y, deriv, scores, nonExtremeProb, ...) 
   return(rval)
 }
 
-mrm_clusters <- function(y, k, fit = NULL)
-{
-  ## data
-  y <- y[, colSums(y) > 0 & colSums(y) < nrow(y), drop = FALSE]
-  m <- ncol(y)
-  stopifnot(m > 0)
-  y <- na.omit(y)
-  y <- y[rowSums(y) > 0 & rowSums(y) < m, ]
+## mrm_clusters <- function(y, k, fit = NULL)
+## {
+##   ## data
+##   y <- y[, colSums(y) > 0 & colSums(y) < nrow(y), drop = FALSE]
+##   m <- ncol(y)
+##   stopifnot(m > 0)
+##   y <- na.omit(y)
+##   y <- y[rowSums(y) > 0 & rowSums(y) < m, ]
 
-  ## raw score frequencies
-  rs <- rowSums(y)
+##   ## raw score frequencies
+##   rs <- rowSums(y)
   
-  ## fit mrm mixture model
-  if(is.null(fit)) fit <- mRm::mrm(y, k)
+##   ## fit mrm mixture model
+##   if(is.null(fit)) fit <- mRm::mrm(y, k)
 
-  ## extract list of coefficients in RaschModel.fit parametrization
-  beta <- lapply(1:k, function(i) {
-    b <- fit$beta[,i]
-    -b[-1L] + b[1L]
-  })
+##   ## extract list of coefficients in RaschModel.fit parametrization
+##   beta <- lapply(1:k, function(i) {
+##     b <- fit$beta[,i]
+##     -b[-1L] + b[1L]
+##   })
     
-  ## extract raw score probabilities
-  psi <- lapply(1:k, function(i) fit$pi.r.c[,i])
+##   ## extract raw score probabilities
+##   psi <- lapply(1:k, function(i) fit$pi.r.c[,i])
 
-  ## elementary symmetric functions
-  lgamma <- lapply(beta, function(x) log(psychotools::elementary_symmetric_functions(c(0, x), order = 0)[[1L]][-1L]))
+##   ## elementary symmetric functions
+##   lgamma <- lapply(beta, function(x) log(psychotools::elementary_symmetric_functions(c(0, x), order = 0)[[1L]][-1L]))
 
-  ## prior probabilties
-  prior <- drop(fit$class.size)
+##   ## prior probabilties
+##   prior <- drop(fit$class.size)
   
-  ll <- sapply(1:k, function(i) -drop(y %*% c(0, beta[[i]])) - lgamma[[i]][rs] + log(psi[[i]][rs]))
-  dens <- t(prior * t(exp(ll)))
-  dens / rowSums(dens)
-}
+##   ll <- sapply(1:k, function(i) -drop(y %*% c(0, beta[[i]])) - lgamma[[i]][rs] + log(psi[[i]][rs]))
+##   dens <- t(prior * t(exp(ll)))
+##   dens / rowSums(dens)
+## }
 
 scoreModel <- function(y, w = NULL, ref = 1, scores = "saturated"){
   if (is.null(w)) w <- rep(1, length.out = nrow(y))

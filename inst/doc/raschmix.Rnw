@@ -82,7 +82,7 @@
 %\VignettePackage{psychomix}
 
 <<preliminaries, echo=FALSE, results=hide>>=
-options(width = 70, prompt = "R> ", continue = "+  ")
+options(width = 70, prompt = "R> ", continue = "+  ", digits = 4)
 library("psychomix")
 library("lattice")
 data("VerbalAggression", package = "psychotools")
@@ -178,15 +178,15 @@ implementation of simple Rasch models, useful when refitting a model
 multiple times in mixtures or recursive partitions
 \citep[see also][]{psychomix:Strobl+Kopf+Zeileis:2011}. 
 
-While \pkg{psychomix} was under development, another \proglang{R} implementation
-of the \cite{psychomix:Rost:1990} model became available in package
-\pkg{mRm} \citep{psychomix:Preinerstorfer+Formann:2011}. As this builds on
-specialized \proglang{C++} code, it runs considerably faster than the generic
-\pkg{flexmix} approach -- however, it only covers this one particular type
-of model and offers fewer methods for specifying, inspecting, and assessing
-(fitted) models. In \pkg{psychomix}, both approaches are reconciled by
-optionally employing the \pkg{mRm} solution as an input to the \pkg{flexmix}
-routines.
+%% While \pkg{psychomix} was under development, another \proglang{R} implementation
+%% of the \cite{psychomix:Rost:1990} model became available in package
+%% \pkg{mRm} \citep{psychomix:Preinerstorfer+Formann:2011}. As this builds on
+%% specialized \proglang{C++} code, it runs considerably faster than the generic
+%% \pkg{flexmix} approach -- however, it only covers this one particular type
+%% of model and offers fewer methods for specifying, inspecting, and assessing
+%% (fitted) models. In \pkg{psychomix}, both approaches are reconciled by
+%% optionally employing the \pkg{mRm} solution as an input to the \pkg{flexmix}
+%% routines.
 
 
 %% overview
@@ -384,8 +384,8 @@ as
   \label{eq:Rost}
 \end{equation}
 %
-This particular parametrization is implemented in the
-\proglang{R} package \pkg{mRm} \citep{psychomix:Preinerstorfer+Formann:2011}.
+%% This particular parametrization is implemented in the
+%% \proglang{R} package \pkg{mRm} \citep{psychomix:Preinerstorfer+Formann:2011}.
 
 Since subjects who solve either none or all items (i.e., $r_i = 0$ or
 $m$, respectively) do not contribute to the conditional likelihood of
@@ -581,14 +581,15 @@ the EM algorithm, any component has a prior probability smaller then
 iteration. The default is \code{0}, i.e., avoiding such shrinkage of the model.
 If \code{cluster} is not provided, \code{nrep} different random
 initializations are employed, keeping only the
-best solution (to avoid local optima). Finally, \code{cluster} can be
-set to \code{"mrm"} in which case the fast \proglang{C++} implementation
-from \pkg{mRm} \citep{psychomix:Preinerstorfer+Formann:2011} can be leveraged
-to generate optimized starting values. Again, the best solution of
-\code{nrep} runs of \fct{mrm} is used. Note that as of version~1.0
-of \pkg{mRm} only the model from Equation~\ref{eq:Rost} is supported
-in \fct{mrm}, resulting in suboptimal -- but potentially still useful --
-posterior probabilities $\hat p_{ik}$ for any other model flavor.
+best solution (to avoid local optima). 
+%% Finally, \code{cluster} can be
+%% set to \code{"mrm"} in which case the fast \proglang{C++} implementation
+%% from \pkg{mRm} \citep{psychomix:Preinerstorfer+Formann:2011} can be leveraged
+%% to generate optimized starting values. Again, the best solution of
+%% \code{nrep} runs of \fct{mrm} is used. Note that as of version~1.0
+%% of \pkg{mRm} only the model from Equation~\ref{eq:Rost} is supported
+%% in \fct{mrm}, resulting in suboptimal -- but potentially still useful --
+%% posterior probabilities $\hat p_{ik}$ for any other model flavor.
 
 Internally, \fct{stepFlexmix} is called to fit all individual mixture
 models and takes control arguments \code{verbose}, \code{drop}, and
@@ -1249,9 +1250,10 @@ and selection. The rich set of methods for \pkg{flexmix} objects is
 complemented by additional functions specifically designed for Rasch
 models, e.g., extracting different types of parameters in different
 transformations and visualizing the estimated component-specific
-item parameters in various ways. Optionally, speed gains can be obtained
-from utilizing the \proglang{C++} implementation in the \pkg{mRm}
-package for selecting optimal starting values.
+item parameters in various ways. 
+%% Optionally, speed gains can be obtained
+%% from utilizing the \proglang{C++} implementation in the \pkg{mRm}
+%% package for selecting optimal starting values.
 Thus, \pkg{psychomix} provides a comprehensive and convenient toolbox
 for the application of Rasch mixture models in psychometric research practice.
 
