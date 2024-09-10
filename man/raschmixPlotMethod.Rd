@@ -68,12 +68,12 @@
   Frick, H., Strobl, C., Leisch, F., and Zeileis, A. (2012).
   Flexible Rasch Mixture Models with Package psychomix.
   \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
-  \url{http://www.jstatsoft.org/v48/i07/}.
+  \doi{10.18637/jss.v048.i07}.
 
   Leisch, F. (2004). FlexMix: A General Framework for Finite Mixture
   Models and Latent Class Regression in R.
   \emph{Journal of Statistical Software}, \bold{11}(8), 1--18.
-  \url{http://www.jstatsoft.org/v11/i08/}.
+  \doi{10.18637/jss.v011.i08}.
 
   Leisch, F. (2004). Exploring the Structure of Mixture Model
   Components. In Jaromir Antoch, editor, \emph{Compstat 2004 -- Proceedings in

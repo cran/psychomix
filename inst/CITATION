@@ -1,43 +1,24 @@
-citHeader("To cite psychomix in publications please use:")
-
-citEntry(entry = "Article",
-  title        = "Flexible Rasch Mixture Models with Package {psychomix}",
-  author       = personList(as.person("Hannah Frick"),
-                   as.person("Carolin Strobl"),
-                   as.person("Friedrich Leisch"),
-                   as.person("Achim Zeileis")),
-  journal      = "Journal of Statistical Software",
-  year         = "2012",
-  volume       = "48",
-  number       = "7",
-  pages        = "1--25",
-  url          = "http://www.jstatsoft.org/v48/i07/",
-
-  textVersion  =
-  paste("Hannah Frick, Carolin Strobl, Friedrich Leisch, Achim Zeileis (2012).",
-        "Flexible Rasch Mixture Models with Package psychomix.",
-        "Journal of Statistical Software, 48(7), 1-25.",
-        "URL http://www.jstatsoft.org/v48/i07/.")
+bibentry(bibtype = "Article",
+  title          = "Flexible Rasch Mixture Models with Package {psychomix}",
+  author         = c(as.person("Hannah Frick"), as.person("Carolin Strobl"), as.person("Friedrich Leisch"), as.person("Achim Zeileis")),
+  journal        = "Journal of Statistical Software",
+  year           = "2012",
+  volume         = "48",
+  number         = "7",
+  pages          = "1--25",
+  doi            = "10.18637/jss.v048.i07",
+  header         = "To cite psychomix in publications please use:"
 )
 
-citEntry(entry = "Article",
-  title        = "{R}asch Mixture Models for {DIF} Detection: A Comparison of Old and New Score Specifications",
-  author       = personList(as.person("Hannah Frick"),
-                   as.person("Carolin Strobl"),
-                   as.person("Achim Zeileis")),
-  journal      = "Educational and Psychological Measurement",
-  year         = "2015",
-  volume       = "75",
-  number       = "2",
-  pages        = "208--234",
-  doi          = "10.1177/0013164414536183",
-
-  textVersion  =
-  paste("Hannah Frick, Carolin Strobl, Achim Zeileis (2015).",
-        "Rasch Mixture Models for DIF Detection: A Comparison of Old and New Score Specifications.",
-        "Educational and Psychological Measurement, 75(2), 208-234.",
-	"doi:10.1177/0013164414536183"),
-
-  header       = "If you use Rasch mixture models with a restricted score distribution, please additionally cite:"        
+bibentry(bibtype = "Article",
+  title          = "{R}asch Mixture Models for {DIF} Detection: A Comparison of Old and New Score Specifications",
+  author         = c(as.person("Hannah Frick"), as.person("Carolin Strobl"), as.person("Achim Zeileis")),
+  journal        = "Educational and Psychological Measurement",
+  year           = "2015",
+  volume         = "75",
+  number         = "2",
+  pages          = "208--234",
+  doi            = "10.1177/0013164414536183",
+  header         = "If you use Rasch mixture models with a restricted score distribution, please additionally cite:"        
 )
 

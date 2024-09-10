@@ -89,7 +89,7 @@ FLXMCmpt(formula = . ~ ., spec = NULL, treeid = NULL, optimargs = NULL, ...)
   Frick, H., Strobl, C., Leisch, F., and Zeileis, A. (2012).
   Flexible Rasch Mixture Models with Package psychomix.
   \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
-  \url{http://www.jstatsoft.org/v48/i07/}
+  \doi{10.18637/jss.v048.i07}
 
   Klauer, K.C. (2006).
   Hierarchical Multinomial Processing Tree Models: A Latent-Class Approach.

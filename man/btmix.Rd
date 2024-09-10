@@ -97,17 +97,17 @@ FLXMCbtreg(formula = . ~ ., type = c("loglin", "logit"), ref = NULL,
   Frick, H., Strobl, C., Leisch, F., and Zeileis, A. (2012).
   Flexible Rasch Mixture Models with Package psychomix.
   \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
-  \url{http://www.jstatsoft.org/v48/i07/}.
+  \doi{10.18637/jss.v048.i07}.
 
   Grün, B., and Leisch, F. (2008). FlexMix Version 2: Finite Mixtures
   with Concomitant Variables and Varying and Constant Parameters.
   \emph{Journal of Statistical Software}, \bold{28}(4), 1--35.
-  \url{http://www.jstatsoft.org/v28/i04/}.
+  \doi{10.18637/jss.v028.i04}.
 
   Leisch, F. (2004). FlexMix: A General Framework for Finite Mixture
   Models and Latent Class Regression in R.
   \emph{Journal of Statistical Software}, \bold{11}(8), 1--18.
-  \url{http://www.jstatsoft.org/v11/i08/}.
+  \doi{10.18637/jss.v011.i08}.
 }
 
 \seealso{

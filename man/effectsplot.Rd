@@ -48,12 +48,12 @@ effectsplot(object, \dots)
 \references{
   Fox, J. (2003). Effect Displays in R for Generalised Linear Models.
     \emph{Journal of Statistical Software}, \bold{8}(15), 1--27.
-    \url{http://www.jstatsoft.org/v08/i15/}
+    \doi{10.18637/jss.v008.i15}
 
   Fox, J., and Hong, J. (2009). Effect Displays in R for Multinomial
     and Proportional-Odds Logit Models: Extensions to the effects Package. 
     \emph{Journal of Statistical Software}, \bold{32}(1), 1--24.
-    \url{http://www.jstatsoft.org/v32/i01/}
+    \doi{10.18637/jss.v032.i01}
 }
 
 \seealso{

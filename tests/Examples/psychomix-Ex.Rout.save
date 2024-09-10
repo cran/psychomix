@@ -1,7 +1,7 @@
 
-R version 3.6.2 (2019-12-12) -- "Dark and Stormy Night"
-Copyright (C) 2019 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.4.1 (2024-06-14) -- "Race for Your Life"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -143,6 +143,7 @@ AIC: 17728.08   BIC: 17917.35
 > 
 > ## see below for examples which do not use this a priori information
 > ## (these take a little longer to compute) 
+> 
 > 
 > 
 > 
@@ -334,7 +335,7 @@ AIC: 17728.08   BIC: 17917.35
 > cleanEx()
 > options(digits = 7L)
 > base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  1.143 0.044 1.187 0 0 
+Time elapsed:  1.066 0.016 1.089 0 0 
 > grDevices::dev.off()
 null device 
           1 

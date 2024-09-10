@@ -118,7 +118,7 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
   Frick, H., Strobl, C., Leisch, F., and Zeileis, A. (2012).
   Flexible Rasch Mixture Models with Package psychomix.
   \emph{Journal of Statistical Software}, \bold{48}(7), 1--25.
-  \url{http://www.jstatsoft.org/v48/i07/}.
+  \doi{10.18637/jss.v048.i07}.
 
   Frick, H., Strobl, C., and Zeileis, A. (2015).
   Rasch Mixture Models for DIF Detection: A Comparison of Old and New
@@ -129,12 +129,12 @@ FLXMCrasch(formula = . ~ ., scores = "saturated", delta = NULL, nonExtremeProb =
   Grün, B., and Leisch, F. (2008). FlexMix Version 2: Finite Mixtures
   with Concomitant Variables and Varying and Constant Parameters.
   \emph{Journal of Statistical Software}, \bold{28}(4), 1--35.
-  \url{http://www.jstatsoft.org/v28/i04/}.
+  \doi{10.18637/jss.v028.i04}.
 
   Leisch, F. (2004). FlexMix: A General Framework for Finite Mixture
   Models and Latent Class Regression in R.
   \emph{Journal of Statistical Software}, \bold{11}(8), 1--18.
-  \url{http://www.jstatsoft.org/v11/i08/}.
+  \doi{10.18637/jss.v011.i08}.
 
   Rost, J. (1990). Rasch Models in Latent Classes: An Integration of Two
   Approaches to Item Analysis.
