@@ -1,3 +1,11 @@
+# psychomix 1.1-10
+
+* The response variable in `raschmix()` is now ensured to be a matrix before
+  passing it on to `stepFlexmix()` (reported by Susan Embretson).
+
+* Updated `structure()` calls to use `names = ...` instead of `.Names = ...` etc.
+
+
 # psychomix 1.1-9
 
 * Achim Zeileis takes over maintenance from Hannah Frick.

@@ -311,5 +311,3 @@ cbind(parameters(cm2b, which = "concomitant"),
 ### code chunk number 34: appendixParametes
 ###################################################
 parameters(fcm2b, which = "model")
-
-

@@ -54,7 +54,7 @@
   Universit\"atsstr.~15\\
   6020 Innsbruck, Austria\\
   E-mail: \email{Hannah.Frick@uibk.ac.at}, \email{Achim.Zeileis@R-project.org}\\
-  URL: \url{http://eeecon.uibk.ac.at/~frick/}, \url{http://eeecon.uibk.ac.at/~zeileis/}\\
+  URL: \url{https://www.zeileis.org/}\\
 
   Carolin Strobl\\
   Department of Psychology\\
@@ -62,15 +62,13 @@
   Binzm\"uhlestr.~14\\
   8050 Z\"urich, Switzerland\\
   E-mail: \email{Carolin.Strobl@psychologie.uzh.ch}\\
-  URL: \url{http://www.psychologie.uzh.ch/fachrichtungen/methoden.html}\\
 
   Friedrich Leisch\\
   Institute of Applied Statistics and Computing\\
   Universit\"at f\"ur Bodenkultur Wien\\
   Peter Jordan-Str.~82\\
   1180 Wien, Austria\\
-  E-mail: \email{Friedrich.Leisch@R-project.org}\\
-  URL: \url{http://www.rali.boku.ac.at/friedrichleisch.html}
+  E-mail: \email{Friedrich.Leisch@R-project.org}
 }
 
 %% Sweave/vignette information and metadata
@@ -167,7 +165,7 @@ from the \pkg{flexmix} package
 it with the function \fct{RaschModel.fit} from the \pkg{psychotools} package
 \citep{psychomix:Zeileis+Strobl+Wickelmaier:2011} for the estimation of
 Rasch models. All packages are freely available from the Comprehensive
-\proglang{R} Archive Network at \url{http://CRAN.R-project.org/}.
+\proglang{R} Archive Network at \url{https://CRAN.R-project.org/}.
 
 The reason for using \fct{RaschModel.fit} as opposed to other
 previously existing (and much more powerful and flexible)

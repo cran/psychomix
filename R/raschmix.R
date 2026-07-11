@@ -70,6 +70,9 @@ raschmix <- function(formula, data, k, subset, weights,
     }
   }
   
+  ## assure item response matrix (rather than data frame)
+  if(inherits(d$.response, "data.frame")) d$.response <- as.matrix(d$.response)
+  
   ## data processing: remove observations without any item responses
   if(inherits(d$.response, "itemresp")) {
       missing.obs <- is.na(d$.response)
@@ -347,7 +350,7 @@ FLXMCrasch <- function(formula = . ~ ., scores = "saturated", delta = NULL,
     
     ## item parameters
     cf <- c(0, rasch.model$coefficients)
-    item <- structure(rep(NA, length(rasch.model$items)), .Names = names(rasch.model$items))
+    item <- structure(rep(NA, length(rasch.model$items)), names = names(rasch.model$items))
     item[rasch.model$items == "0/1"] <- cf
     item[rasch.model$items == "0"] <- Inf
     item[rasch.model$items == "1"] <- -Inf

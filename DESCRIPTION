@@ -1,6 +1,6 @@
 Package: psychomix
-Version: 1.1-9
-Date: 2024-09-10
+Version: 1.1-10
+Date: 2026-07-11
 Title: Psychometric Mixture Models
 Authors@R: c(person(given = "Hannah", family = "Frick", role = "aut", email = "hannah.frick@gmail.com", comment = c(ORCID = "0000-0002-6049-5258")),
              person(given = "Friedrich", family = "Leisch", role = "aut", comment = c(ORCID = "0000-0001-7278-1983")),
@@ -18,12 +18,13 @@ Imports: graphics, methods, stats, lattice, Formula (>= 1.1-0),
 Suggests: effects, lmtest, nnet, numDeriv
 License: GPL-2 | GPL-3
 NeedsCompilation: no
-Packaged: 2024-09-09 23:36:53 UTC; zeileis
-Author: Hannah Frick [aut] (<https://orcid.org/0000-0002-6049-5258>),
-  Friedrich Leisch [aut] (<https://orcid.org/0000-0001-7278-1983>),
-  Carolin Strobl [aut] (<https://orcid.org/0000-0003-0952-3230>),
+Packaged: 2026-07-11 01:02:41 UTC; zeileis
+Author: Hannah Frick [aut] (ORCID: <https://orcid.org/0000-0002-6049-5258>),
+  Friedrich Leisch [aut] (ORCID: <https://orcid.org/0000-0001-7278-1983>),
+  Carolin Strobl [aut] (ORCID: <https://orcid.org/0000-0003-0952-3230>),
   Florian Wickelmaier [aut],
-  Achim Zeileis [aut, cre] (<https://orcid.org/0000-0003-0918-3766>)
+  Achim Zeileis [aut, cre] (ORCID:
+    <https://orcid.org/0000-0003-0918-3766>)
 Maintainer: Achim Zeileis <Achim.Zeileis@R-project.org>
 Repository: CRAN
-Date/Publication: 2024-09-10 09:40:02 UTC
+Date/Publication: 2026-07-11 02:40:02 UTC

@@ -507,5 +507,3 @@ xyplot(mvR3)
 session <- sessionInfo()
 Rversion <- paste(session$R.version$major, session$R.version$minor, sep = ".")
 psyversion <- session$otherPkgs$psychomix$Version
-
-
